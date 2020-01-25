@@ -1,12 +1,7 @@
 from aqt import mw
-from anki.exporting import AnkiExporter
-from aqt.utils import showInfo
-import re, os, zipfile, shutil, unicodedata
 from anki.lang import _
-from anki import Collection
-import json
 
-from anki.utils import ids2str, splitFields, json, namedtmp
+from anki.utils import json
 from anki.importing import Anki2Importer
 
 # #########################################################
@@ -25,179 +20,6 @@ COMBINE_TAGGING = False # change this to True if you would like to concatenate t
 GUID = 1
 MID = 2
 MOD = 3
-
-def newExportInto(self, path):
-    # sched info+v2 scheduler not compatible w/ older clients
-    # showInfo("newtype of import")
-    try:
-        self._v2sched = self.col.schedVer() != 1 and self.includeSched
-    except AttributeError:
-        pass
-    # create a new collection at the target
-    try:
-        os.unlink(path)
-    except (IOError, OSError):
-        pass
-    self.dst = Collection(path)
-    self.src = self.col
-    # find cards
-    if not self.did:
-        cids = self.src.db.list("select id from cards")
-    else:
-        cids = self.src.decks.cids(self.did, children=True)
-    # copy cards, noting used nids
-    nids = {}
-    data = []
-    for row in self.src.db.execute(
-        "select * from cards where id in "+ids2str(cids)):
-        nids[row[1]] = True
-        data.append(row)
-        # clear flags
-        row = list(row)
-        row[-2] = 0
-    self.dst.db.executemany(
-        "insert into cards values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-        data)
-    # notes
-    ########################################################################
-    # check if any models with special field exist
-    midCheck= []
-    models = mw.col.db.scalar("""select models from col""")
-    b = json.loads(models)
-    a = list(b.values())
-    # showInfo("%s"%SPECIAL_FIELD)
-    for i in a:
-        fields = i["flds"]
-        for n in fields:
-            if n['name'] in SPECIAL_FIELD:
-                midCheck.append(str(i["id"]))
-    ########################################################################
-
-    # showInfo("%s"%midCheck)
-    strnids = ids2str(list(nids.keys()))
-    notedata = []
-    for row in self.src.db.all(
-        "select * from notes where id in "+strnids):
-        # remove system tags if not exporting scheduling info
-        if not self.includeSched:
-            row = list(row)
-            row[5] = self.removeSystemTags(row[5])
-
-        if str(row[2]) in midCheck: 
-            trow = list(row)                     # if this note belongs to a model with "Special Field"
-            
-            for i in SPECIAL_FIELD:
-                try:
-                    row = list(row)
-                    
-                    items = mw.col.getNote(row[0]).items()
-                    fieldOrd = [item for item in items if item[0] == i]
-                    fieldOrd = items.index(fieldOrd[0])
-
-                    fields = [item[1] for item in items]
-                    splitRow = row[6].split("\x1f")
-                    splitRow = splitRow[:len(fields)]
-
-                    finalrow = ''
-                    count = 0
-                    for i in items:
-                        if count == fieldOrd:
-                            finalrow += "\x1f"
-                        else:
-                            i = list(i)
-                            finalrow += str(i[1].encode('utf-8'))+"\x1f"
-                        count = count+1
-
-                    def rreplace(s, old, new, occurrence):
-                        li = s.rsplit(old, occurrence)
-                        return new.join(li)
-
-                    finalrow= rreplace(finalrow, """\x1f""", '', 1)
-                    row[6] = str(finalrow)
-                    row = tuple(row)
-                except IndexError:
-                    pass
-        notedata.append(row)
-
-                #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
-
-    # showInfo("%s" % str(notedata))
-    self.dst.db.executemany(
-        "insert into notes values (?,?,?,?,?,?,?,?,?,?,?)",
-        notedata)
-    # models used by the notes
-    mids = self.dst.db.list("select distinct mid from notes where id in "+
-                            strnids)
-    # card history and revlog
-    if self.includeSched:
-        data = self.src.db.all(
-            "select * from revlog where cid in "+ids2str(cids))
-        self.dst.db.executemany(
-            "insert into revlog values (?,?,?,?,?,?,?,?,?)",
-            data)
-    else:
-        # need to reset card state
-        self.dst.sched.resetCards(cids)
-    # models - start with zero
-    self.dst.models.models = {}
-    for m in self.src.models.all():
-        if int(m['id']) in mids:
-            self.dst.models.update(m)
-    # decks
-    if not self.did:
-        dids = []
-    else:
-        dids = [self.did] + [
-            x[1] for x in self.src.decks.children(self.did)]
-    dconfs = {}
-    for d in self.src.decks.all():
-        if str(d['id']) == "1":
-            continue
-        if dids and d['id'] not in dids:
-            continue
-        if not d['dyn'] and d['conf'] != 1:
-            if self.includeSched:
-                dconfs[d['conf']] = True
-        if not self.includeSched:
-            # scheduling not included, so reset deck settings to default
-            d = dict(d)
-            d['conf'] = 1
-        self.dst.decks.update(d)
-    # copy used deck confs
-    for dc in self.src.decks.allConf():
-        if dc['id'] in dconfs:
-            self.dst.decks.updateConf(dc)
-    # find used media
-    media = {}
-    self.mediaDir = self.src.media.dir()
-    if self.includeMedia:
-        for row in notedata:
-            flds = row[6]
-            mid = row[2]
-            for file in self.src.media.filesInStr(mid, flds):
-                # skip files in subdirs
-                if file != os.path.basename(file):
-                    continue
-                media[file] = True
-        if self.mediaDir:
-            for fname in os.listdir(self.mediaDir):
-                path = os.path.join(self.mediaDir, fname)
-                if os.path.isdir(path):
-                    continue
-                if fname.startswith("_"):
-                    # Scan all models in mids for reference to fname
-                    for m in self.src.models.all():
-                        if int(m['id']) in mids:
-                            if self._modelHasMedia(m, fname):
-                                media[fname] = True
-                                break
-    self.mediaFiles = list(media.keys())
-    self.dst.crt = self.src.crt
-    # todo: tags?
-    self.count = self.dst.cardCount()
-    self.dst.setMod()
-    self.postExport()
-    self.dst.close()
 
 
 def newImportNotes(self):
@@ -324,9 +146,6 @@ def newImportNotes(self):
                     row = tuple(row)
                     # if row[0] == 1558556384609: #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
                     
-                    # showInfo("%s"%str(splitRow))
-                    # showInfo("%s"%str(indexOfField))
-                    # showInfo("%s"%str(valueLocal))
                 except:
                     pass
         if COMBINE_TAGGING:
@@ -384,6 +203,3 @@ def newImportNotes(self):
 
 
 Anki2Importer._importNotes = newImportNotes
-AnkiExporter.exportInto = newExportInto
-
-
