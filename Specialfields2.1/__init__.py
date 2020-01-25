@@ -4,6 +4,8 @@ from anki.lang import _
 from anki.utils import json
 from anki.importing import Anki2Importer
 
+from .config import getUserOption
+
 # #########################################################
 # How to use:
 # Go Tools -> Manage Note types..
@@ -15,8 +17,7 @@ from anki.importing import Anki2Importer
 # Use the exact same name as you have set for SPECIAL_FIELD below... default is "Lecture Notes"
 # Now when you export, your special field notes will be kept with you and not exported
 # #########################################################
-SPECIAL_FIELD = [u"Lecture Notes",u"Rx/UWORLD Details",u"Boards and Beyond Expansion",u"Pathoma Details"]# add more between the brackets eg. u"Text",u"Extra",u"Front",u"Back"
-COMBINE_TAGGING = False # change this to True if you would like to concatenate tags 
+
 GUID = 1
 MID = 2
 MOD = 3
@@ -54,7 +55,7 @@ def newImportNotes(self):
     for i in a:
         fields = i["flds"]
         for n in fields:
-            if n['name'] in SPECIAL_FIELD:
+            if n['name'] in getUserOption("Special field", []):
                 midCheck.append(str(i["id"]))
     ########################################################################
 
@@ -83,7 +84,7 @@ def newImportNotes(self):
             if self.allowUpdate:
                 oldNid, oldMod, oldMid = self._notes[note[GUID]]
                 # will update if incoming note more recent
-                if oldMod < note[MOD]:
+                if oldMod < note[MOD] and not getUserOption("update only if newer", True):
                     # safe if note types identical
                     if oldMid == note[MID]:
                         # incoming note should use existing id
@@ -116,7 +117,7 @@ def newImportNotes(self):
         togetherTags = " %s " % " ".join(newTags)
         if str(row[2]) in midCheck: 
             trow = list(row)                     # if this note belongs to a model with "Special Field"
-            for i in SPECIAL_FIELD:
+            for i in getUserOption("Special field", []):
                 try:
                     row = list(row)
                     items = mw.col.getNote(row[0]).items()
@@ -148,7 +149,7 @@ def newImportNotes(self):
                     
                 except:
                     pass
-        if COMBINE_TAGGING:
+        if getUserOption("Combine tagging", False):
             row=list(row)
             row[5] = togetherTags
             row=tuple(row)
