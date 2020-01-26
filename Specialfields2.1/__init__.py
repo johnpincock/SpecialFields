@@ -84,7 +84,7 @@ def newImportNotes(self):
             if self.allowUpdate:
                 oldNid, oldMod, oldMid = self._notes[note[GUID]]
                 # will update if incoming note more recent
-                if oldMod < note[MOD] and not getUserOption("update only if newer", True):
+                if oldMod < note[MOD] or (not getUserOption("update only if newer", True)):
                     # safe if note types identical
                     if oldMid == note[MID]:
                         # incoming note should use existing id
