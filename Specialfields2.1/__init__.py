@@ -115,9 +115,14 @@ def newImportNotes(self):
 
         newTags = set(newTags)
         togetherTags = " %s " % " ".join(newTags)
-        if str(row[2]) in midCheck: 
+        mid = str(row[2])
+        if mid in midCheck:
+            model = mw.col.models.get(mid)
+            specialFields = getUserOption("Special field", [])
+            if getUserOption("All fields are special", False):
+                specialFields = [fld['name'] for fld in model['flds']]
             trow = list(row)                     # if this note belongs to a model with "Special Field"
-            for i in getUserOption("Special field", []):
+            for i in specialFields:
                 try:
                     row = list(row)
                     items = mw.col.getNote(row[0]).items()
