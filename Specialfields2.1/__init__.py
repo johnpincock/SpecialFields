@@ -204,3 +204,48 @@ def newImportNotes(self):
 
 
 Anki2Importer._importNotes = newImportNotes
+def _mid(self, srcMid):
+    """Return local id for remote MID.
+
+    Two models are assumed to be compatible if they have the same
+    names of fields and of card type. If imported model is
+    compatible with local model of the same id, then both models
+    are "merged". I.e. the lastly changed model is used.
+
+    Otherwise the model of imported note is imported in the
+    collection.
+
+    """
+    # already processed this mid?
+    if srcMid in self._modelMap:
+        return self._modelMap[srcMid]
+    mid = srcMid
+    srcModel = self.src.models.get(srcMid)
+    srcScm = self.src.models.scmhash(srcModel)
+    updateNoteType = getUserOption("update note type")
+    while True:
+        # missing from target col?
+        if not self.dst.models.have(mid):
+            # copy it over
+            model = srcModel.copy()
+            model['id'] = mid
+            model['usn'] = self.col.usn()
+            self.dst.models.update(model)
+            break
+        # there's an existing model; do the schemas match?
+        dstModel = self.dst.models.get(mid)
+        dstScm = self.dst.models.scmhash(dstModel)
+        if srcScm == dstScm:
+            # copy styling changes over if newer
+            if updateNoteType or (updateNoteType is None and srcModel['mod'] > dstModel['mod']):
+                model = srcModel.copy()
+                model['id'] = mid
+                model['usn'] = self.col.usn()
+                self.dst.models.update(model)
+            break
+        # as they don't match, try next id
+        mid += 1
+        # save map and return new mid
+    self._modelMap[srcMid] = mid
+    return mid
+Anki2Importer._mid = _mid

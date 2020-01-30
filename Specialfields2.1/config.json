@@ -4,5 +4,6 @@
   "Boards and Beyond Expansion",
   "Pathoma Details"],
  "Combine tagging": false,
- "update only if newer": true
+ "update only if newer": true,
+ "update note type": null
 }
