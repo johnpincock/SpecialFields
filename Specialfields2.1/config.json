@@ -1,10 +1,13 @@
-{"Special field":
+{
+  "All fields are special": false,
+  "Combine tagging": false,
+   "Special field":
  ["Lecture Notes",
   "Rx/UWORLD Details",
   "Boards and Beyond Expansion",
   "Pathoma Details"],
- "All fields are special": false,
- "Combine tagging": false,
- "update only if newer": true,
+ "update deck description": false
  "update note type": null,
- "update deck description": false}
+ "update only if newer": true,
+}
+  
