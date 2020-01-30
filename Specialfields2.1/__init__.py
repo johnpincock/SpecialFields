@@ -55,7 +55,7 @@ def newImportNotes(self):
     for i in a:
         fields = i["flds"]
         for n in fields:
-            if n['name'] in getUserOption("Special field", []):
+            if n['name'] in getUserOption("Special field", []) or getUserOption("All fields are special", False):
                 midCheck.append(str(i["id"]))
     ########################################################################
 
