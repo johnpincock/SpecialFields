@@ -203,10 +203,10 @@ def newImportNotes(self):
     self.dst.tags.registerNotes(dirty)
 
     # deal with deck description
-    if getUserOption("update deck description", True):
+    if getUserOption("update deck description", False):
         for importedDid, importedDeck in self.src.decks.decks.items():
             localDid = self._did(importedDid)
-            importedDeck = self.dst.decks.get(localDid)
+            localDeck = self.dst.decks.get(localDid)
             localDeck['desc'] = importedDeck['desc']
             self.dst.decks.save(localDeck)
 
