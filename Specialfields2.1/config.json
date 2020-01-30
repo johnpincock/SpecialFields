@@ -5,5 +5,5 @@
   "Pathoma Details"],
  "Combine tagging": false,
  "update only if newer": true,
- "update note type": null
-}
+ "update note type": null,
+ "update deck description": true}
