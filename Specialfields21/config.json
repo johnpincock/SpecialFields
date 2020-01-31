@@ -7,7 +7,7 @@
   "Boards and Beyond Expansion",
   "Pathoma Details"],
  "update deck description": true,
- "update note type": false,
+ "update note styling": false,
  "update only if newer": false
 }
   

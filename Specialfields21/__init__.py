@@ -235,7 +235,7 @@ def _mid(self, srcMid):
     mid = srcMid
     srcModel = self.src.models.get(srcMid)
     srcScm = self.src.models.scmhash(srcModel)
-    updateNoteType = getUserOption("update note type")
+    updateNoteType = getUserOption("update note styling")
     while True:
         # missing from target col?
         if not self.dst.models.have(mid):
