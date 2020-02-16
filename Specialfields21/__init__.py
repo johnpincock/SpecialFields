@@ -2,11 +2,12 @@ from aqt import mw
 from anki.lang import _
 
 from anki.utils import json
+from aqt.utils import showWarning
 from anki.importing import Anki2Importer
 
 from .config import getUserOption
 
-from . import dialogue
+from . import dialog
 
 # #########################################################
 # How to use:
