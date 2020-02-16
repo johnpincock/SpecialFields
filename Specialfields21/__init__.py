@@ -6,6 +6,8 @@ from anki.importing import Anki2Importer
 
 from .config import getUserOption
 
+from . import dialogue
+
 # #########################################################
 # How to use:
 # Go Tools -> Manage Note types..
