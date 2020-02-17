@@ -27,8 +27,44 @@ class FieldDialog(QDialog):
         self.setupSignals()
         self.form.fieldList.setCurrentRow(0)
 
+        conf = getUserOption()
+        allSpecial = conf["All fields are special"]
+        combTaging = conf["Combine tagging"]
+        updateDesc = conf["update deck description"]
+        updateStyle = conf["update note styling"]
+        upOnlyIfNewer = conf["update only if newer"]
+
+        self.b1 = QCheckBox("All fields are special", self)
+        self.form._2.addWidget(self.b1)
+        self.b1.setChecked(allSpecial)
+
+        self.b2 = QCheckBox("Combine tagging", self)
+        self.form._2.addWidget(self.b2)
+        self.b2.setChecked(combTaging)
+
+        self.b3 = QCheckBox("Update deck description", self)
+        self.form._2.addWidget(self.b3)
+        self.b3.setChecked(updateDesc)
+
+        self.b4 = QCheckBox("Update note styling", self)
+        self.form._2.addWidget(self.b4)
+        self.b4.setChecked(updateStyle)
+
+        self.b5 = QCheckBox("Update only if newer", self)
+        self.form._2.addWidget(self.b5)
+        self.b5.setChecked(upOnlyIfNewer)
+
+        self.b1.clicked.connect(self.b1_press)
+        self.b2.clicked.connect(self.b2_press)
+        self.b3.clicked.connect(self.b3_press)
+        self.b4.clicked.connect(self.b4_press)
+        self.b5.clicked.connect(self.b5_press)
+        # self.form.buttonBox.button(QRadioButton("Upload Collection", self))
+
+        # self.upload_but.clicked.connect(self.uploadBut)
+
         # removing irrelevant stuff from general "fields.ui" template
-        self.form._2.setParent(None)
+        # self.form._2.setParent(None)
         self.form.rtl.setParent(None)
         self.form.fontFamily.setParent(None)
         self.form.fontSize.setParent(None)
@@ -64,6 +100,37 @@ class FieldDialog(QDialog):
         f.fieldAdd.clicked.connect(self.onAdd)
         f.fieldDelete.clicked.connect(self.onDelete)
         f.buttonBox.helpRequested.connect(self.onHelp)
+        
+
+    def b1_press(self):
+        val = self.b1.isChecked()
+        conf = getUserOption()
+        conf["All fields are special"] = val
+        writeConfig()
+
+    def b2_press(self):
+        val = self.b2.isChecked()
+        conf = getUserOption()
+        conf["Combine tagging"] = val
+        writeConfig()
+
+    def b3_press(self):
+        val = self.b3.isChecked()
+        conf = getUserOption()
+        conf["update deck description"] = val
+        writeConfig()
+
+    def b4_press(self):
+        val = self.b4.isChecked()
+        conf = getUserOption()
+        conf["update note styling"] = val
+        writeConfig()
+
+    def b5_press(self):
+        val = self.b5.isChecked()
+        conf = getUserOption()
+        conf["update only if newer"] = val
+        writeConfig()
 
     def onRowChange(self, idx):
         if idx == -1:
@@ -125,3 +192,5 @@ def onFields(self):
 action = QAction("Special Fields", mw)
 action.triggered.connect(onFields)
 mw.form.menuTools.addAction(action)
+
+
