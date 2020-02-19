@@ -27,7 +27,32 @@ class FieldDialog(QDialog):
         self.setupSignals()
         self.form.fieldList.setCurrentRow(0)
 
-        conf = getUserOption(refresh=True)
+        self.setupOptions()
+        # self.form.buttonBox.button(QRadioButton("Upload Collection", self))
+        # self.upload_but.clicked.connect(self.uploadBut)
+
+        # removing irrelevant stuff from general "fields.ui" template
+        # self.form._2.setParent(None)
+        self.form.rtl.setParent(None)
+        self.form.fontFamily.setParent(None)
+        self.form.fontSize.setParent(None)
+        self.form.sticky.setParent(None)
+        self.form.label_18.setParent(None)
+        self.form.fontFamily.setParent(None)
+        self.form.fieldRename.setParent(None)
+        self.form.fieldPosition.setParent(None)
+        self.form.label_5.setParent(None)
+        self.form.sortField.setParent(None)
+        self.resize(400, 200)
+
+        self.exec_()
+
+        
+
+    ##########################################################################
+    def setupOptions(self):
+        conf = getUserOption()
+        
         allSpecial = conf["All fields are special"]
         combTaging = conf["Combine tagging"]
         updateDesc = conf["update deck description"]
@@ -63,28 +88,6 @@ class FieldDialog(QDialog):
         self.b4.clicked.connect(self.b4_press)
         self.b5.clicked.connect(self.b5_press)
         self.b6.clicked.connect(self.restoreConfig)
-        # self.form.buttonBox.button(QRadioButton("Upload Collection", self))
-        # self.upload_but.clicked.connect(self.uploadBut)
-
-        # removing irrelevant stuff from general "fields.ui" template
-        # self.form._2.setParent(None)
-        self.form.rtl.setParent(None)
-        self.form.fontFamily.setParent(None)
-        self.form.fontSize.setParent(None)
-        self.form.sticky.setParent(None)
-        self.form.label_18.setParent(None)
-        self.form.fontFamily.setParent(None)
-        self.form.fieldRename.setParent(None)
-        self.form.fieldPosition.setParent(None)
-        self.form.label_5.setParent(None)
-        self.form.sortField.setParent(None)
-        self.resize(400, 200)
-
-        self.exec_()
-
-        
-
-    ##########################################################################
 
     def fillFields(self):
         self.currentIdx = None
@@ -151,6 +154,9 @@ class FieldDialog(QDialog):
         self.b3.setChecked(updateDesc)
         self.b4.setChecked(updateStyle)
         self.b5.setChecked(upOnlyIfNewer)
+        getUserOption(refresh=True)
+        showInfo("Settings Restored")
+        self.close()
         
 
     def onRowChange(self, idx):
