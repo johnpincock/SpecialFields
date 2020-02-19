@@ -4,7 +4,7 @@ from anki.consts import *
 import aqt
 from aqt.utils import showWarning, openHelp, getOnlyText, askUser, showInfo
 from anki.utils import json
-from .config import getUserOption, writeConfig
+from .config import getUserOption, writeConfig, getDefaultConfig
 
 class FieldDialog(QDialog):
 
@@ -27,7 +27,7 @@ class FieldDialog(QDialog):
         self.setupSignals()
         self.form.fieldList.setCurrentRow(0)
 
-        conf = getUserOption()
+        conf = getUserOption(refresh=True)
         allSpecial = conf["All fields are special"]
         combTaging = conf["Combine tagging"]
         updateDesc = conf["update deck description"]
@@ -54,13 +54,16 @@ class FieldDialog(QDialog):
         self.form._2.addWidget(self.b5)
         self.b5.setChecked(upOnlyIfNewer)
 
+        self.b6 = QPushButton("Restore Defaults", self)
+        self.form._2.addWidget(self.b6)
+
         self.b1.clicked.connect(self.b1_press)
         self.b2.clicked.connect(self.b2_press)
         self.b3.clicked.connect(self.b3_press)
         self.b4.clicked.connect(self.b4_press)
         self.b5.clicked.connect(self.b5_press)
+        self.b6.clicked.connect(self.restoreConfig)
         # self.form.buttonBox.button(QRadioButton("Upload Collection", self))
-
         # self.upload_but.clicked.connect(self.uploadBut)
 
         # removing irrelevant stuff from general "fields.ui" template
@@ -132,10 +135,29 @@ class FieldDialog(QDialog):
         conf["update only if newer"] = val
         writeConfig()
 
+    def restoreConfig(self):
+        conf = getDefaultConfig()
+        addon = __name__.split(".")[0]
+        mw.addonManager.writeAddonMeta(addon, conf)
+
+        allSpecial = conf["All fields are special"]
+        combTaging = conf["Combine tagging"]
+        updateDesc = conf["update deck description"]
+        updateStyle = conf["update note styling"]
+        upOnlyIfNewer = conf["update only if newer"]
+
+        self.b1.setChecked(allSpecial)
+        self.b2.setChecked(combTaging)
+        self.b3.setChecked(updateDesc)
+        self.b4.setChecked(updateStyle)
+        self.b5.setChecked(upOnlyIfNewer)
+        
+
     def onRowChange(self, idx):
         if idx == -1:
             return
         self.saveField()
+
 
     def _uniqueName(self, prompt, ignoreOrd=None, old=""):
         txt = getOnlyText(prompt, default=old)
