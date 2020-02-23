@@ -43,7 +43,7 @@ class FieldDialog(QDialog):
         self.form.fieldPosition.setParent(None)
         self.form.label_5.setParent(None)
         self.form.sortField.setParent(None)
-        self.resize(400, 200)
+        self.resize(500, 300)
 
         self.exec_()
 
@@ -157,6 +157,7 @@ class FieldDialog(QDialog):
         getUserOption(refresh=True)
         showInfo("Settings Restored")
         self.close()
+        onFieldsExecute()
         
 
     def onRowChange(self, idx):
@@ -216,8 +217,12 @@ def onFields(self):
     fields = b["Special field"]
     FieldDialog(mw, fields, parent=self)
 
+def onFieldsExecute():
+    onFields(mw)
 
+mw.addonManager.setConfigAction(__name__, onFieldsExecute)
 action = QAction("Special Fields", mw)
+action.setShortcut(QKeySequence("Ctrl+alt+s"))
 action.triggered.connect(onFields)
 mw.form.menuTools.addAction(action)
 
