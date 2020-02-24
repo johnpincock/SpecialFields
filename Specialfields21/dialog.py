@@ -222,7 +222,7 @@ def onFieldsExecute():
 
 mw.addonManager.setConfigAction(__name__, onFieldsExecute)
 action = QAction("Special Fields", mw)
-action.setShortcut(QKeySequence("Ctrl+alt+s"))
+action.setShortcut(QKeySequence("Ctrl+shift+s"))
 action.triggered.connect(onFields)
 mw.form.menuTools.addAction(action)
 
