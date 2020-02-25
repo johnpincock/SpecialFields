@@ -7,13 +7,13 @@ from aqt.utils import showWarning
 
 userOption = None
 
-def _getUserOption():
+def _getUserOption(refresh):
     global userOption
-    if userOption is None:
+    if userOption is None or refresh:
         userOption = mw.addonManager.getConfig(__name__)
 
-def getUserOption(key = None, default = None):
-    _getUserOption()
+def getUserOption(key = None, default = None, refresh = False):
+    _getUserOption(refresh)
     if key is None:
         return userOption
     if key in userOption:
@@ -21,6 +21,9 @@ def getUserOption(key = None, default = None):
     else:
         return default
 
+def getDefaultConfig():
+    addon = __name__.split(".")[0]
+    return mw.addonManager.addonConfigDefaults(addon)
 
 def writeConfig():
     mw.addonManager.writeConfig(__name__, userOption)
