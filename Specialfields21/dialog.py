@@ -82,12 +82,20 @@ class FieldDialog(QDialog):
         self.b6 = QPushButton("Restore Defaults", self)
         self.form._2.addWidget(self.b6)
 
+        self.b7 = QPushButton("Update Settings", self)
+        self.form._2.addWidget(self.b7)
+
+        self.b8 = QPushButton("Import Settings", self)
+        self.form._2.addWidget(self.b8)
+
         self.b1.clicked.connect(self.b1_press)
         self.b2.clicked.connect(self.b2_press)
         self.b3.clicked.connect(self.b3_press)
         self.b4.clicked.connect(self.b4_press)
         self.b5.clicked.connect(self.b5_press)
         self.b6.clicked.connect(self.restoreConfig)
+        self.b7.clicked.connect(self.updatePresetConfig)
+        self.b8.clicked.connect(self.importPresetConfig)
 
     def fillFields(self):
         self.currentIdx = None
@@ -158,7 +166,71 @@ class FieldDialog(QDialog):
         showInfo("Settings Restored")
         self.close()
         onFieldsExecute()
+
+    def importPresetConfig(self):
+        conf = getDefaultConfig()
+        addon = __name__.split(".")[0]
+
+        conf["All fields are special"] = True
+        conf["Combine tagging"] = True
+        conf["update deck description"] = False
+        conf["update note styling"] = False
+        conf["update only if newer"] = False
         
+        mw.addonManager.writeAddonMeta(addon, conf)
+
+        allSpecial = conf["All fields are special"]
+        combTaging = conf["Combine tagging"]
+        updateDesc = conf["update deck description"]
+        updateStyle = conf["update note styling"]
+        upOnlyIfNewer = conf["update only if newer"]
+
+        if self.b1.isChecked() != allSpecial:
+            self.b1.click()
+        if self.b2.isChecked() != combTaging:
+            self.b2.click()
+        if self.b3.isChecked() != updateDesc:
+            self.b3.click()
+        if self.b4.isChecked() != updateStyle:
+            self.b4.click()
+        if self.b5.isChecked() != upOnlyIfNewer:
+            self.b5.click()
+
+        showInfo("Settings applied for importing a new deck")
+
+
+    def updatePresetConfig(self):
+        conf = getDefaultConfig()
+        addon = __name__.split(".")[0]
+        # mw.addonManager.writeAddonMeta(addon, conf)
+
+        conf["All fields are special"] = False
+        conf["Combine tagging"] = False
+        conf["update deck description"] = True
+        conf["update note styling"] = True
+        conf["update only if newer"] = False
+
+        mw.addonManager.writeAddonMeta(addon, conf)
+
+        allSpecial = conf["All fields are special"]
+        combTaging = conf["Combine tagging"]
+        updateDesc = conf["update deck description"]
+        updateStyle = conf["update note styling"]
+        upOnlyIfNewer = conf["update only if newer"]
+
+        if self.b1.isChecked() != allSpecial:
+            self.b1.click()
+        if self.b2.isChecked() != combTaging:
+            self.b2.click()
+        if self.b3.isChecked() != updateDesc:
+            self.b3.click()
+        if self.b4.isChecked() != updateStyle:
+            self.b4.click()
+        if self.b5.isChecked() != upOnlyIfNewer:
+            self.b5.click()
+
+        showInfo("Settings applied for updating a deck")
+
 
     def onRowChange(self, idx):
         if idx == -1:
