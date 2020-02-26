@@ -82,10 +82,10 @@ class FieldDialog(QDialog):
         self.b6 = QPushButton("Restore Defaults", self)
         self.form._2.addWidget(self.b6)
 
-        self.b7 = QPushButton("Update Settings", self)
+        self.b7 = QPushButton("'Update Settings'", self)
         self.form._2.addWidget(self.b7)
 
-        self.b8 = QPushButton("Import Settings", self)
+        self.b8 = QPushButton("'Import Tags' Settings", self)
         self.form._2.addWidget(self.b8)
 
         self.b1.clicked.connect(self.b1_press)
@@ -196,7 +196,7 @@ class FieldDialog(QDialog):
         if self.b5.isChecked() != upOnlyIfNewer:
             self.b5.click()
 
-        showInfo("Settings applied for importing a new deck")
+        showInfo("Settings applied for importing tags")
 
 
     def updatePresetConfig(self):
