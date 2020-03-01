@@ -5,6 +5,13 @@ import aqt
 from aqt.utils import showWarning, openHelp, getOnlyText, askUser, showInfo
 from anki.utils import json
 from .config import getUserOption, writeConfig, getDefaultConfig
+import copy
+import webbrowser
+
+fullconfig = getUserOption()
+configs = getUserOption("configs")
+
+addon = __name__.split(".")[0]
 
 class FieldDialog(QDialog):
 
@@ -51,13 +58,13 @@ class FieldDialog(QDialog):
 
     ##########################################################################
     def setupOptions(self):
-        conf = getUserOption()
+
         
-        allSpecial = conf["All fields are special"]
-        combTaging = conf["Combine tagging"]
-        updateDesc = conf["update deck description"]
-        updateStyle = conf["update note styling"]
-        upOnlyIfNewer = conf["update only if newer"]
+        allSpecial = configs["current config"]["All fields are special"]
+        combTaging = configs["current config"]["Combine tagging"]
+        updateDesc = configs["current config"]["update deck description"]
+        updateStyle = configs["current config"]["update note styling"]
+        upOnlyIfNewer = configs["current config"]["update only if newer"]
 
         self.b1 = QCheckBox("All fields are special", self)
         self.form._2.addWidget(self.b1)
@@ -79,30 +86,33 @@ class FieldDialog(QDialog):
         self.form._2.addWidget(self.b5)
         self.b5.setChecked(upOnlyIfNewer)
 
-        self.b6 = QPushButton("Restore Defaults", self)
+        self.b6 = QPushButton("Set Defaults", self)
         self.form._2.addWidget(self.b6)
 
-        self.b7 = QPushButton("Update Settings", self)
+        self.b7 = QPushButton("'Update' Settings", self)
         self.form._2.addWidget(self.b7)
 
-        self.b8 = QPushButton("Import Settings", self)
+        self.b8 = QPushButton("'Import Tags' Settings", self)
         self.form._2.addWidget(self.b8)
+
+        self.b9 = QPushButton("Restore Defaults", self)
+        self.form._2.addWidget(self.b9)
 
         self.b1.clicked.connect(self.b1_press)
         self.b2.clicked.connect(self.b2_press)
         self.b3.clicked.connect(self.b3_press)
         self.b4.clicked.connect(self.b4_press)
         self.b5.clicked.connect(self.b5_press)
-        self.b6.clicked.connect(self.restoreConfig)
+        self.b6.clicked.connect(self.setConfig) #make this class
         self.b7.clicked.connect(self.updatePresetConfig)
         self.b8.clicked.connect(self.importPresetConfig)
+        self.b9.clicked.connect(self.restoreConfig) #change this class
 
     def fillFields(self):
         self.currentIdx = None
         self.form.fieldList.clear()
 
-        b = getUserOption()
-        fields = b["Special field"]
+        fields = configs["current config"]["Special field"]
 
         for c, f in enumerate(fields):
             self.form.fieldList.addItem("{}: {}".format(c+1, f
@@ -118,72 +128,89 @@ class FieldDialog(QDialog):
 
     def b1_press(self):
         val = self.b1.isChecked()
-        conf = getUserOption()
-        conf["All fields are special"] = val
-        writeConfig()
+        configs["current config"]["All fields are special"] = val
+        mw.addonManager.writeConfig(__name__, fullconfig)
+
 
     def b2_press(self):
         val = self.b2.isChecked()
-        conf = getUserOption()
-        conf["Combine tagging"] = val
-        writeConfig()
+        configs["current config"]["Combine tagging"] = val
+        mw.addonManager.writeConfig(__name__, fullconfig)
 
     def b3_press(self):
         val = self.b3.isChecked()
-        conf = getUserOption()
-        conf["update deck description"] = val
-        writeConfig()
+        configs["current config"]["update deck description"] = val
+        mw.addonManager.writeConfig(__name__, fullconfig)
 
     def b4_press(self):
         val = self.b4.isChecked()
-        conf = getUserOption()
-        conf["update note styling"] = val
-        writeConfig()
+        configs["current config"]["update note styling"] = val
+        mw.addonManager.writeConfig(__name__, fullconfig)
 
     def b5_press(self):
         val = self.b5.isChecked()
-        conf = getUserOption()
-        conf["update only if newer"] = val
-        writeConfig()
+        configs["current config"]["update only if newer"] = val
+        mw.addonManager.writeConfig(__name__, fullconfig)
 
     def restoreConfig(self):
-        conf = getDefaultConfig()
         addon = __name__.split(".")[0]
-        mw.addonManager.writeAddonMeta(addon, conf)
+        configs["current config"] = copy.deepcopy(configs["user default config"])
+    
+        mw.addonManager.writeConfig(__name__, fullconfig)
 
-        allSpecial = conf["All fields are special"]
-        combTaging = conf["Combine tagging"]
-        updateDesc = conf["update deck description"]
-        updateStyle = conf["update note styling"]
-        upOnlyIfNewer = conf["update only if newer"]
+        allSpecial = configs["current config"]["All fields are special"]
+        combTaging = configs["current config"]["Combine tagging"]
+        updateDesc = configs["current config"]["update deck description"]
+        updateStyle = configs["current config"]["update note styling"]
+        upOnlyIfNewer = configs["current config"]["update only if newer"]
 
         self.b1.setChecked(allSpecial)
         self.b2.setChecked(combTaging)
         self.b3.setChecked(updateDesc)
         self.b4.setChecked(updateStyle)
         self.b5.setChecked(upOnlyIfNewer)
-        getUserOption(refresh=True)
         showInfo("Settings Restored")
         self.close()
         onFieldsExecute()
 
+    def setConfig(self):
+        configs["user default config"] = copy.deepcopy(configs["current config"])
+        mw.addonManager.writeConfig(__name__, fullconfig)
+
+        allSpecial = configs["current config"]["All fields are special"]
+        combTaging = configs["current config"]["Combine tagging"]
+        updateDesc = configs["current config"]["update deck description"]
+        updateStyle = configs["current config"]["update note styling"]
+        upOnlyIfNewer = configs["current config"]["update only if newer"]
+
+        self.b1.setChecked(allSpecial)
+        self.b2.setChecked(combTaging)
+        self.b3.setChecked(updateDesc)
+        self.b4.setChecked(updateStyle)
+        self.b5.setChecked(upOnlyIfNewer)
+        showInfo("Settings Restored")
+        self.close()
+        onFieldsExecute()
+
+     
+                    
+
     def importPresetConfig(self):
-        conf = getDefaultConfig()
         addon = __name__.split(".")[0]
 
-        conf["All fields are special"] = True
-        conf["Combine tagging"] = True
-        conf["update deck description"] = False
-        conf["update note styling"] = False
-        conf["update only if newer"] = False
+        configs["current config"]["All fields are special"] = True
+        configs["current config"]["Combine tagging"] = True
+        configs["current config"]["update deck description"] = False
+        configs["current config"]["update note styling"] = False
+        configs["current config"]["update only if newer"] = False
         
-        mw.addonManager.writeAddonMeta(addon, conf)
+        mw.addonManager.writeConfig(__name__, fullconfig)
 
-        allSpecial = conf["All fields are special"]
-        combTaging = conf["Combine tagging"]
-        updateDesc = conf["update deck description"]
-        updateStyle = conf["update note styling"]
-        upOnlyIfNewer = conf["update only if newer"]
+        allSpecial = configs["current config"]["All fields are special"]
+        combTaging = configs["current config"]["Combine tagging"]
+        updateDesc = configs["current config"]["update deck description"]
+        updateStyle = configs["current config"]["update note styling"]
+        upOnlyIfNewer = configs["current config"]["update only if newer"]
 
         if self.b1.isChecked() != allSpecial:
             self.b1.click()
@@ -196,27 +223,26 @@ class FieldDialog(QDialog):
         if self.b5.isChecked() != upOnlyIfNewer:
             self.b5.click()
 
-        showInfo("Settings applied for importing a new deck")
+        showInfo("Settings applied for importing tags")
 
 
     def updatePresetConfig(self):
-        conf = getDefaultConfig()
         addon = __name__.split(".")[0]
         # mw.addonManager.writeAddonMeta(addon, conf)
 
-        conf["All fields are special"] = False
-        conf["Combine tagging"] = False
-        conf["update deck description"] = True
-        conf["update note styling"] = True
-        conf["update only if newer"] = False
+        configs["current config"]["All fields are special"] = False
+        configs["current config"]["Combine tagging"] = False
+        configs["current config"]["update deck description"] = True
+        configs["current config"]["update note styling"] = True
+        configs["current config"]["update only if newer"] = False
 
-        mw.addonManager.writeAddonMeta(addon, conf)
+        mw.addonManager.writeConfig(__name__, fullconfig)
 
-        allSpecial = conf["All fields are special"]
-        combTaging = conf["Combine tagging"]
-        updateDesc = conf["update deck description"]
-        updateStyle = conf["update note styling"]
-        upOnlyIfNewer = conf["update only if newer"]
+        allSpecial = configs["current config"]["All fields are special"]
+        combTaging = configs["current config"]["Combine tagging"]
+        updateDesc = configs["current config"]["update deck description"]
+        updateStyle = configs["current config"]["update note styling"]
+        upOnlyIfNewer = configs["current config"]["update only if newer"]
 
         if self.b1.isChecked() != allSpecial:
             self.b1.click()
@@ -255,38 +281,37 @@ class FieldDialog(QDialog):
         self.specialFields = self.specialFields.append(name)
         self.saveField()
         self.fillFields()
-        conf = getUserOption()
-        fields = conf["Special field"]
+        fields = configs["current config"]["Special field"] 
         self.specialFields = fields
         self.form.fieldList.setCurrentRow(len(self.specialFields)-1)
-        writeConfig()
+        mw.addonManager.writeConfig(__name__, fullconfig)
 
     def onDelete(self):
         f = self.specialFields[self.form.fieldList.currentRow()]
         self.specialFields.remove(f)
         self.saveField()
         self.fillFields()
-        writeConfig()
+        mw.addonManager.writeConfig(__name__, fullconfig)
 
     def saveField(self):
 
         if self.currentIdx is None:
             return
         
-        conf = getUserOption()
-        fields = conf["Special field"]
+        fields = configs["current config"]["Special field"]
         fields = self.specialFields
-        writeConfig()
+        mw.addonManager.writeConfig(__name__, fullconfig)
+
 
     def onHelp(self):
-        openHelp("fields")
+        #openHelp("fields")
+        webbrowser.open('http://www.ankingmed.com/how-to-update')
 
 
 
 def onFields(self):
     # Use existing FieldDialog as template for UI.
-    b = getUserOption()
-    fields = b["Special field"]
+    fields = configs["current config"]["Special field"]
     FieldDialog(mw, fields, parent=self)
 
 def onFieldsExecute():
