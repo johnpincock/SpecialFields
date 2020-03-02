@@ -101,10 +101,11 @@ def newImportNotes(self):
                         update.append(note)
                         dirty.append(note[0])
                     else:
-                        dupesIgnored.append("%s: %s" % (
+                        '''dupesIgnored.append("%s: %s" % (
                             self.col.models.get(oldMid)['name'],
                             note[6].replace("\x1f", ",")
-                        ))
+                        ))'''
+                        dupesIgnored.append(note)
                         self._ignoredGuids[note[GUID]] = True
                 else:
                         dupesIdentical.append(note)
