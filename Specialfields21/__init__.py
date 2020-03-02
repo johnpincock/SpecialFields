@@ -12,6 +12,7 @@ from . import dialog
 # #########################################################
 #
 # See this video for how to use this add-on: 
+# This add-on is now configured via the Tools->Special Fields menu
 #
 # Anki web page: https://ankiweb.net/shared/info/1102281552
 #
