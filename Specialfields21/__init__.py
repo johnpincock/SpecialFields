@@ -12,15 +12,6 @@ from . import dialog
 # #########################################################
 #
 # See this video for how to use this add-on: 
-# This add-on is now configured via the Tools->Special Fields menu
-#
-# Anki web page: https://ankiweb.net/shared/info/1102281552
-#
-# 
-# If you like this add-on, you can donate:
-# Written by John Pincock: https://ko-fi.com/johnpin
-# Original idea and updates by The AnKing: https://www.patreon.com or https://paypal.me/ankingmed
-# Updates also by Arthur Milchior: https://ko-fi.com/arthurmilchior
 #
 # #########################################################
 
