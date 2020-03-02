@@ -10,21 +10,25 @@ from .config import getUserOption
 from . import dialog
 
 # #########################################################
-# How to use:
-# Go Tools -> Manage Note types..
-# add a new note type 
-# choose a name
-# select note type
-# click "Fields.."
-# Add Field
-# Use the exact same name as you have set for SPECIAL_FIELD below... default is "Lecture Notes"
-# Now when you export, your special field notes will be kept with you and not exported
+#
+# See this video for how to use this add-on: 
+#
 # #########################################################
 
 GUID = 1
 MID = 2
 MOD = 3
 
+configs = getUserOption("configs")
+current_config = configs["current config"]
+
+def getUserOptionSpecial(key = None, default = None):
+    if key is None:
+        return configs["current config"]
+    if key in configs["current config"]:
+        return configs["current config"][key]
+    else:
+        return default
 
 def newImportNotes(self):
     # build guid -> (id,mod,mid) hash & map of existing note ids
@@ -58,7 +62,7 @@ def newImportNotes(self):
     for i in a:
         fields = i["flds"]
         for n in fields:
-            if n['name'] in getUserOption("Special field", []) or getUserOption("All fields are special", False):
+            if n['name'] in getUserOptionSpecial("Special field", []) or getUserOptionSpecial("All fields are special", False):
                 midCheck.append(str(i["id"]))
     ########################################################################
 
@@ -87,7 +91,7 @@ def newImportNotes(self):
             if self.allowUpdate:
                 oldNid, oldMod, oldMid = self._notes[note[GUID]]
                 # will update if incoming note more recent
-                if oldMod < note[MOD] or (not getUserOption("update only if newer", True)):
+                if oldMod < note[MOD] or (not getUserOptionSpecial("update only if newer", True)):
                     # safe if note types identical
                     if oldMid == note[MID]:
                         # incoming note should use existing id
@@ -97,10 +101,11 @@ def newImportNotes(self):
                         update.append(note)
                         dirty.append(note[0])
                     else:
-                        dupesIgnored.append("%s: %s" % (
+                        '''dupesIgnored.append("%s: %s" % (
                             self.col.models.get(oldMid)['name'],
                             note[6].replace("\x1f", ",")
-                        ))
+                        ))'''
+                        dupesIgnored.append(note)
                         self._ignoredGuids[note[GUID]] = True
                 else:
                         dupesIdentical.append(note)
@@ -121,8 +126,8 @@ def newImportNotes(self):
         mid = str(row[2])
         if mid in midCheck:
             model = mw.col.models.get(mid)
-            specialFields = getUserOption("Special field", [])
-            if getUserOption("All fields are special", False):
+            specialFields = getUserOptionSpecial("Special field", [])
+            if getUserOptionSpecial("All fields are special", False):
                 specialFields = [fld['name'] for fld in model['flds']]
             trow = list(row)                     # if this note belongs to a model with "Special Field"
             for i in specialFields:
@@ -157,7 +162,7 @@ def newImportNotes(self):
                     
                 except:
                     pass
-        if getUserOption("Combine tagging", False):
+        if getUserOptionSpecial("Combine tagging", False):
             row=list(row)
             row[5] = togetherTags
             row=tuple(row)
@@ -211,7 +216,9 @@ def newImportNotes(self):
     self.dst.tags.registerNotes(dirty)
 
     # deal with deck description
-    if getUserOption("update deck description", False):
+
+    #if getUserOption("update deck description", False):
+    if getUserOptionSpecial("update deck description", False):
         for importedDid, importedDeck in self.src.decks.decks.copy().items():
             localDid = self._did(importedDid)
             localDeck = self.dst.decks.get(localDid)
@@ -238,7 +245,7 @@ def _mid(self, srcMid):
     mid = srcMid
     srcModel = self.src.models.get(srcMid)
     srcScm = self.src.models.scmhash(srcModel)
-    updateNoteType = getUserOption("update note styling")
+    updateNoteType = getUserOptionSpecial("update note styling") #getUserOption("update note styling")
     while True:
         # missing from target col?
         if not self.dst.models.have(mid):
