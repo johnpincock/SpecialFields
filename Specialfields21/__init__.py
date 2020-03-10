@@ -11,7 +11,7 @@ from . import dialog
 
 # #########################################################
 #
-# See this video for how to use this add-on: 
+# See this video for how to use this add-on: https://youtu.be/cg-tQ6Ut0IQ
 #
 # #########################################################
 
