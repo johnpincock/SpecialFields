@@ -305,7 +305,7 @@ class FieldDialog(QDialog):
 
     def onHelp(self):
         #openHelp("fields")
-        webbrowser.open('http://www.ankingmed.com/how-to-update')
+        webbrowser.open('https://youtu.be/cg-tQ6Ut0IQ')
 
 
 
