@@ -8,6 +8,12 @@ from .config import getUserOption, writeConfig, getDefaultConfig
 import copy
 import webbrowser
 
+# #########################################################
+#
+# See this video for how to use this add-on: https://youtu.be/cg-tQ6Ut0IQ
+#
+# #########################################################
+
 fullconfig = getUserOption()
 configs = getUserOption("configs")
 
