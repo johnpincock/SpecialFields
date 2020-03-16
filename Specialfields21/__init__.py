@@ -110,7 +110,6 @@ def newImportNotes(self) -> None:
 
     self.log.append(_("Notes found in file: %d") % total)
 
-    newUpdate = []
     for note in update:
         oldnote = mw.col.getNote(note[0])
         newTags = [t for t in note[5].replace('\u3000', ' ').split(" ") if t]
@@ -161,7 +160,6 @@ def newImportNotes(self) -> None:
                     pass
         if getUserOptionSpecial("Combine tagging", False):
             note[5] = togetherTags
-        newUpdate.append(note)
 
     self.log.append(_("Notes found in file: %d") % total)
 
@@ -169,9 +167,9 @@ def newImportNotes(self) -> None:
         self.log.append(
             _("Notes that could not be imported as note type has changed: %d")
             % len(dupesIgnored))
-    if newUpdate:
+    if update:
         self.log.append(
-            _("Notes updated, as file had newer version: %d") % len(newUpdate))
+            _("Notes updated, as file had newer version: %d") % len(update))
     if add:
         self.log.append(_("Notes added from file: %d") % len(add))
     if dupesIdentical:
@@ -201,7 +199,7 @@ def newImportNotes(self) -> None:
         "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)", add
     )
     self.dst.db.executemany(
-        "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)", newUpdate
+        "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)", update
     )
     self.dst.updateFieldCache(dirty)
     self.dst.tags.registerNotes(dirty)
