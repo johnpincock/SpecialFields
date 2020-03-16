@@ -173,7 +173,7 @@ def newImportNotes(self) -> None:
         self.log.append(
             _("Notes that could not be imported as note type has changed: %d")
             % len(dupesIgnored))
-    if update:
+    if newUpdate:
         self.log.append(
             _("Notes updated, as file had newer version: %d") % len(newUpdate))
     if add:
