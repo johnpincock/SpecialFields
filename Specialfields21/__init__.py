@@ -1,3 +1,5 @@
+from typing import Any, Dict, Tuple
+
 from anki.importing import Anki2Importer
 from anki.lang import _
 from anki.utils import json
@@ -30,28 +32,29 @@ def getUserOptionSpecial(key=None, default=None):
         return default
 
 
-def newImportNotes(self):
+def newImportNotes(self) -> None:
     # build guid -> (id,mod,mid) hash & map of existing note ids
-    self._notes = {}
+    self._notes: Dict[str, Tuple[int, int, int]] = {}
     existing = {}
     for id, guid, mod, mid in self.dst.db.execute(
-            "select id, guid, mod, mid from notes"):
+        "select id, guid, mod, mid from notes"
+    ):
         self._notes[guid] = (id, mod, mid)
         existing[id] = True
     # we may need to rewrite the guid if the model schemas don't match,
     # so we need to keep track of the changes for the card import stage
-    self._changedGuids = {}
+    self._changedGuids: Dict[str, bool] = {}
     # we ignore updates to changed schemas. we need to note the ignored
     # guids, so we avoid importing invalid cards
-    self._ignoredGuids = {}
+    self._ignoredGuids: Dict[str, bool] = {}
     # iterate over source collection
     add = []
     update = []
     dirty = []
     usn = self.dst.usn()
-    dupes = 0
-    dupesIgnored = []
+    self.dupes = 0
     dupesIdentical = []
+    dupesIgnored = []
     total = 0
     ########################################################################
     # check if any models with special field exist
@@ -66,8 +69,7 @@ def newImportNotes(self):
                 midCheck.append(str(i["id"]))
     ########################################################################
 
-    for note in self.src.db.execute(
-            "select * from notes"):
+    for note in self.src.db.execute("select * from notes"):
         total += 1
         # turn the db result into a mutable list
         note = list(note)
@@ -87,7 +89,7 @@ def newImportNotes(self):
             self._notes[note[GUID]] = (note[0], note[3], note[MID])
         else:
             # a duplicate or changed schema - safe to update?
-            dupes += 1
+            self.dupes += 1
             if self.allowUpdate:
                 oldNid, oldMod, oldMid = self._notes[note[GUID]]
                 # will update if incoming note more recent
@@ -101,14 +103,12 @@ def newImportNotes(self):
                         update.append(note)
                         dirty.append(note[0])
                     else:
-                        '''dupesIgnored.append("%s: %s" % (
-                            self.col.models.get(oldMid)['name'],
-                            note[6].replace("\x1f", ",")
-                        ))'''
                         dupesIgnored.append(note)
                         self._ignoredGuids[note[GUID]] = True
                 else:
                     dupesIdentical.append(note)
+
+    self.log.append(_("Notes found in file: %d") % total)
 
     newUpdate = []
     for row in update:
@@ -171,20 +171,16 @@ def newImportNotes(self):
 
     if dupesIgnored:
         self.log.append(
-            _("Notes that could not be imported as note type has changed: %d") %
-            len(dupesIgnored))
+            _("Notes that could not be imported as note type has changed: %d")
+            % len(dupesIgnored))
     if update:
         self.log.append(
-            _("Notes updated, as file had newer version: %d") %
-            len(newUpdate))
+            _("Notes updated, as file had newer version: %d") % len(newUpdate))
     if add:
-        self.log.append(
-            _("Notes added from file: %d") %
-            len(add))
+        self.log.append(_("Notes added from file: %d") % len(add))
     if dupesIdentical:
-        self.log.append(
-            _("Notes skipped, as they're already in your collection: %d") %
-            len(dupesIdentical))
+        self.log.append(_("Notes skipped, as they're already in your collection: %d") %
+                        len(dupesIdentical))
 
     self.log.append("")
 
@@ -200,17 +196,17 @@ def newImportNotes(self):
     if dupesIdentical:
         for row in dupesIdentical:
             self._logNoteRow(_("Identical"), row)
-    self.dupes = dupes
-    self.added = len(add)
-    self.updated = len(newUpdate)
 
+    # export info for calling code
+    self.added = len(add)
+    self.updated = len(update)
     # add to col
     self.dst.db.executemany(
-        "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)",
-        add)
+        "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)", add
+    )
     self.dst.db.executemany(
-        "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)",
-        newUpdate)
+        "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)", newUpdate
+    )
     self.dst.updateFieldCache(dirty)
     self.dst.tags.registerNotes(dirty)
 
@@ -253,8 +249,8 @@ def _mid(self, srcMid):
         if not self.dst.models.have(mid):
             # copy it over
             model = srcModel.copy()
-            model['id'] = mid
-            model['usn'] = self.col.usn()
+            model["id"] = mid
+            model["usn"] = self.col.usn()
             self.dst.models.update(model)
             break
         # there's an existing model; do the schemas match?
@@ -262,15 +258,15 @@ def _mid(self, srcMid):
         dstScm = self.dst.models.scmhash(dstModel)
         if srcScm == dstScm:
             # copy styling changes over if newer
-            if updateNoteType or (updateNoteType is None and srcModel['mod'] > dstModel['mod']):
+            if updateNoteType or (updateNoteType is None and srcModel["mod"] > dstModel["mod"]):
                 model = srcModel.copy()
-                model['id'] = mid
-                model['usn'] = self.col.usn()
+                model["id"] = mid
+                model["usn"] = self.col.usn()
                 self.dst.models.update(model)
             break
         # as they don't match, try next id
         mid += 1
-        # save map and return new mid
+    # save map and return new mid
     self._modelMap[srcMid] = mid
     return mid
 
