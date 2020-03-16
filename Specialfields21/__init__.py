@@ -266,3 +266,50 @@ def _mid(self, srcMid):
 
 
 Anki2Importer._mid = _mid
+
+def _did(self, did: int) -> Any:
+    "Given did in src col, return local id."
+    # already converted?
+    if did in self._decks:
+        return self._decks[did]
+    # get the name in src
+    g = self.src.decks.get(did)
+    name = g["name"]
+    # if there's a prefix, replace the top level deck
+    if self.deckPrefix:
+        tmpname = "::".join(name.split("::")[1:])
+        name = self.deckPrefix
+        if tmpname:
+            name += "::" + tmpname
+    # manually create any parents so we can pull in descriptions
+    head = ""
+    for parent in name.split("::")[:-1]:
+        if head:
+            head += "::"
+        head += parent
+        idInSrc = self.src.decks.id(head)
+        self._did(idInSrc)
+    # if target is a filtered deck, we'll need a new deck name
+    deck = self.dst.decks.byName(name)
+    if deck and deck["dyn"]:
+        name = "%s %d" % (name, intTime())
+    # create in local
+    newid = self.dst.decks.id(name)
+    # pull conf over
+    if "conf" in g and g["conf"] != 1:
+        conf = self.src.decks.getConf(g["conf"])
+        self.dst.decks.save(conf)
+        self.dst.decks.updateConf(conf)
+        g2 = self.dst.decks.get(newid)
+        g2["conf"] = g["conf"]
+        self.dst.decks.save(g2)
+    # save desc
+    # only change
+    if getUserOption("update deck description", False):
+        deck = self.dst.decks.get(newid)
+        deck["desc"] = g["desc"]
+        self.dst.decks.save(deck)
+    # add to deck map and return
+    self._decks[did] = newid
+    return newid
+Anki2Importer._did = _did
