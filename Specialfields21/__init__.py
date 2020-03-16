@@ -111,9 +111,9 @@ def newImportNotes(self) -> None:
     self.log.append(_("Notes found in file: %d") % total)
 
     newUpdate = []
-    for row in update:
-        oldnote = mw.col.getNote(row[0])
-        newTags = [t for t in row[5].replace('\u3000', ' ').split(" ") if t]
+    for note in update:
+        oldnote = mw.col.getNote(note[0])
+        newTags = [t for t in note[5].replace('\u3000', ' ').split(" ") if t]
         for tag in oldnote.tags:
             for i in newTags:
                 if i.lower() == tag.lower():
@@ -122,24 +122,24 @@ def newImportNotes(self) -> None:
 
         newTags = set(newTags)
         togetherTags = " %s " % " ".join(newTags)
-        mid = str(row[2])
+        mid = str(note[2])
         if mid in midCheck:
             model = mw.col.models.get(mid)
             specialFields = getUserOptionSpecial("Special field", [])
             if getUserOptionSpecial("All fields are special", False):
                 specialFields = [fld['name'] for fld in model['flds']]
             # if this note belongs to a model with "Special Field"
-            trow = list(row)
+            trow = list(note)
             for i in specialFields:
                 try:
-                    row = list(row)
-                    items = mw.col.getNote(row[0]).items()
+                    note = list(note)
+                    items = mw.col.getNote(note[0]).items()
                     fieldOrd = [item for item in items if item[0] == i]
                     fieldOrd = items.index(fieldOrd[0])
                     fields = [item[1] for item in items]
-                    splitRow = row[6].split("\x1f")
+                    splitRow = note[6].split("\x1f")
 
-                    # valueLocal = mw.col.getNote(row[0]).values()
+                    # valueLocal = mw.col.getNote(note[0]).values()
                     # splitRow[indexOfField] = valueLocal[indexOfField]
 
                     finalrow = ''
@@ -155,17 +155,17 @@ def newImportNotes(self) -> None:
                         li = s.rsplit(old, occurrence)
                         return new.join(li)
                     finarow = rreplace(finalrow, """\x1f""", '', 1)
-                    row[6] = str(finarow)
-                    row = tuple(row)
-                    # if row[0] == 1558556384609: #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
+                    note[6] = str(finarow)
+                    note = tuple(note)
+                    # if note[0] == 1558556384609: #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
 
                 except:
                     pass
         if getUserOptionSpecial("Combine tagging", False):
-            row = list(row)
-            row[5] = togetherTags
-            row = tuple(row)
-        newUpdate.append(row)
+            note = list(note)
+            note[5] = togetherTags
+            note = tuple(note)
+        newUpdate.append(note)
 
     self.log.append(_("Notes found in file: %d") % total)
 
