@@ -132,7 +132,6 @@ def newImportNotes(self) -> None:
             trow = list(note)
             for i in specialFields:
                 try:
-                    note = list(note)
                     items = mw.col.getNote(note[0]).items()
                     fieldOrd = [item for item in items if item[0] == i]
                     fieldOrd = items.index(fieldOrd[0])
@@ -156,15 +155,12 @@ def newImportNotes(self) -> None:
                         return new.join(li)
                     finarow = rreplace(finalrow, """\x1f""", '', 1)
                     note[6] = str(finarow)
-                    note = tuple(note)
                     # if note[0] == 1558556384609: #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
 
                 except:
                     pass
         if getUserOptionSpecial("Combine tagging", False):
-            note = list(note)
             note[5] = togetherTags
-            note = tuple(note)
         newUpdate.append(note)
 
     self.log.append(_("Notes found in file: %d") % total)
