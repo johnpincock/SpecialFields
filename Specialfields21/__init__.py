@@ -1,17 +1,15 @@
-from aqt import mw
-from anki.lang import _
-
-from anki.utils import json
-from aqt.utils import showWarning
 from anki.importing import Anki2Importer
-
-from .config import getUserOption
+from anki.lang import _
+from anki.utils import json
+from aqt import mw
+from aqt.utils import showWarning
 
 from . import dialog
+from .config import getUserOption
 
 # #########################################################
 #
-# See this video for how to use this add-on: 
+# See this video for how to use this add-on:
 #
 # #########################################################
 
@@ -22,7 +20,8 @@ MOD = 3
 configs = getUserOption("configs")
 current_config = configs["current config"]
 
-def getUserOptionSpecial(key = None, default = None):
+
+def getUserOptionSpecial(key=None, default=None):
     if key is None:
         return configs["current config"]
     if key in configs["current config"]:
@@ -30,12 +29,13 @@ def getUserOptionSpecial(key = None, default = None):
     else:
         return default
 
+
 def newImportNotes(self):
     # build guid -> (id,mod,mid) hash & map of existing note ids
     self._notes = {}
     existing = {}
     for id, guid, mod, mid in self.dst.db.execute(
-        "select id, guid, mod, mid from notes"):
+            "select id, guid, mod, mid from notes"):
         self._notes[guid] = (id, mod, mid)
         existing[id] = True
     # we may need to rewrite the guid if the model schemas don't match,
@@ -55,7 +55,7 @@ def newImportNotes(self):
     total = 0
     ########################################################################
     # check if any models with special field exist
-    midCheck= []
+    midCheck = []
     models = mw.col.db.scalar("""select models from col""")
     b = json.loads(models)
     a = list(b.values())
@@ -67,7 +67,7 @@ def newImportNotes(self):
     ########################################################################
 
     for note in self.src.db.execute(
-        "select * from notes"):
+            "select * from notes"):
         total += 1
         # turn the db result into a mutable list
         note = list(note)
@@ -108,12 +108,11 @@ def newImportNotes(self):
                         dupesIgnored.append(note)
                         self._ignoredGuids[note[GUID]] = True
                 else:
-                        dupesIdentical.append(note)
-
+                    dupesIdentical.append(note)
 
     newUpdate = []
     for row in update:
-        oldnote = mw.col.getNote(row[0]) 
+        oldnote = mw.col.getNote(row[0])
         newTags = [t for t in row[5].replace('\u3000', ' ').split(" ") if t]
         for tag in oldnote.tags:
             for i in newTags:
@@ -129,7 +128,8 @@ def newImportNotes(self):
             specialFields = getUserOptionSpecial("Special field", [])
             if getUserOptionSpecial("All fields are special", False):
                 specialFields = [fld['name'] for fld in model['flds']]
-            trow = list(row)                     # if this note belongs to a model with "Special Field"
+            # if this note belongs to a model with "Special Field"
+            trow = list(row)
             for i in specialFields:
                 try:
                     row = list(row)
@@ -139,15 +139,14 @@ def newImportNotes(self):
                     fields = [item[1] for item in items]
                     splitRow = row[6].split("\x1f")
 
-
                     # valueLocal = mw.col.getNote(row[0]).values()
                     # splitRow[indexOfField] = valueLocal[indexOfField]
 
                     finalrow = ''
-                    count=0
+                    count = 0
                     for a in splitRow:
                         if count == fieldOrd:
-                            finalrow += str(fields[fieldOrd]) +"\x1f"
+                            finalrow += str(fields[fieldOrd]) + "\x1f"
                         else:
                             finalrow += a+"\x1f"
                         count = count + 1
@@ -155,17 +154,17 @@ def newImportNotes(self):
                     def rreplace(s, old, new, occurrence):
                         li = s.rsplit(old, occurrence)
                         return new.join(li)
-                    finarow= rreplace(finalrow, """\x1f""", '', 1)
+                    finarow = rreplace(finalrow, """\x1f""", '', 1)
                     row[6] = str(finarow)
                     row = tuple(row)
                     # if row[0] == 1558556384609: #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
-                    
+
                 except:
                     pass
         if getUserOptionSpecial("Combine tagging", False):
-            row=list(row)
+            row = list(row)
             row[5] = togetherTags
-            row=tuple(row)
+            row = tuple(row)
         newUpdate.append(row)
 
     self.log.append(_("Notes found in file: %d") % total)
@@ -217,7 +216,7 @@ def newImportNotes(self):
 
     # deal with deck description
 
-    #if getUserOption("update deck description", False):
+    # if getUserOption("update deck description", False):
     if getUserOptionSpecial("update deck description", False):
         for importedDid, importedDeck in self.src.decks.decks.copy().items():
             localDid = self._did(importedDid)
@@ -227,6 +226,8 @@ def newImportNotes(self):
 
 
 Anki2Importer._importNotes = newImportNotes
+
+
 def _mid(self, srcMid):
     """Return local id for remote MID.
 
@@ -245,7 +246,8 @@ def _mid(self, srcMid):
     mid = srcMid
     srcModel = self.src.models.get(srcMid)
     srcScm = self.src.models.scmhash(srcModel)
-    updateNoteType = getUserOptionSpecial("update note styling") #getUserOption("update note styling")
+    # getUserOption("update note styling")
+    updateNoteType = getUserOptionSpecial("update note styling")
     while True:
         # missing from target col?
         if not self.dst.models.have(mid):
@@ -271,5 +273,6 @@ def _mid(self, srcMid):
         # save map and return new mid
     self._modelMap[srcMid] = mid
     return mid
-Anki2Importer._mid = _mid
 
+
+Anki2Importer._mid = _mid

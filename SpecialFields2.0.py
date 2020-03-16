@@ -1,7 +1,11 @@
 from aqt import mw
 from anki.exporting import AnkiExporter
 from aqt.utils import showInfo
-import re, os, zipfile, shutil, unicodedata
+import re
+import os
+import zipfile
+import shutil
+import unicodedata
 from anki.lang import _
 from anki import Collection
 import json
@@ -12,7 +16,7 @@ from anki.importing import Anki2Importer
 # #########################################################
 # How to use:
 # Go Tools -> Manage Note types..
-# add a new note type 
+# add a new note type
 # choose a name
 # select note type
 # click "Fields.."
@@ -20,11 +24,13 @@ from anki.importing import Anki2Importer
 # Use the exact same name as you have set for SPECIAL_FIELD below... default is "Lecture Notes"
 # Now when you export, your special field notes will be kept with you and not exported
 # #########################################################
-SPECIAL_FIELD = [u"Lecture Notes",u"Rx/UWORLD Details",u"Boards and Beyond Expansion",u"Pathoma Details"]# add more between the brackets eg. u"Text",u"Extra",u"Front",u"Back"
-COMBINE_TAGGING = False # change this to True if you would like to concatenate tags 
+SPECIAL_FIELD = [u"Lecture Notes", u"Rx/UWORLD Details", u"Boards and Beyond Expansion",
+                 u"Pathoma Details"]  # add more between the brackets eg. u"Text",u"Extra",u"Front",u"Back"
+COMBINE_TAGGING = False  # change this to True if you would like to concatenate tags
 GUID = 1
 MID = 2
 MOD = 3
+
 
 def newExportInto(self, path):
     # sched info+v2 scheduler not compatible w/ older clients
@@ -49,7 +55,7 @@ def newExportInto(self, path):
     nids = {}
     data = []
     for row in self.src.db.execute(
-        "select * from cards where id in "+ids2str(cids)):
+            "select * from cards where id in "+ids2str(cids)):
         nids[row[1]] = True
         data.append(row)
         # clear flags
@@ -61,7 +67,7 @@ def newExportInto(self, path):
     # notes
     ########################################################################
     # check if any models with special field exist
-    midCheck= []
+    midCheck = []
     models = mw.col.db.scalar("""select models from col""")
     b = json.loads(models)
     a = list(b.values())
@@ -77,19 +83,20 @@ def newExportInto(self, path):
     strnids = ids2str(list(nids.keys()))
     notedata = []
     for row in self.src.db.all(
-        "select * from notes where id in "+strnids):
+            "select * from notes where id in "+strnids):
         # remove system tags if not exporting scheduling info
         if not self.includeSched:
             row = list(row)
             row[5] = self.removeSystemTags(row[5])
 
-        if str(row[2]) in midCheck: 
-            trow = list(row)                     # if this note belongs to a model with "Special Field"
-            
+        if str(row[2]) in midCheck:
+            # if this note belongs to a model with "Special Field"
+            trow = list(row)
+
             for i in SPECIAL_FIELD:
                 try:
                     row = list(row)
-                    
+
                     items = mw.col.getNote(row[0]).items()
                     fieldOrd = [item for item in items if item[0] == i]
                     fieldOrd = items.index(fieldOrd[0])
@@ -106,26 +113,27 @@ def newExportInto(self, path):
                         else:
                             i = list(i)
                             finalrow += str(i[1].encode("utf-8"))+"\x1f"
-                        count= count+1
+                        count = count+1
+
                     def rreplace(s, old, new, occurrence):
                         li = s.rsplit(old, occurrence)
                         return new.join(li)
 
-                    finalrow= rreplace(finalrow, """\x1f""", '', 1)
+                    finalrow = rreplace(finalrow, """\x1f""", '', 1)
                     row[6] = str(finalrow)
                     row = tuple(row)
                 except IndexError:
                     pass
         notedata.append(row)
 
-                #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
+        # FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
 
     # showInfo("%s" % str(notedata))
     self.dst.db.executemany(
         "insert into notes values (?,?,?,?,?,?,?,?,?,?,?)",
         notedata)
     # models used by the notes
-    mids = self.dst.db.list("select distinct mid from notes where id in "+
+    mids = self.dst.db.list("select distinct mid from notes where id in " +
                             strnids)
     # card history and revlog
     if self.includeSched:
@@ -204,7 +212,7 @@ def newImportNotes(self):
     self._notes = {}
     existing = {}
     for id, guid, mod, mid in self.dst.db.execute(
-        "select id, guid, mod, mid from notes"):
+            "select id, guid, mod, mid from notes"):
         self._notes[guid] = (id, mod, mid)
         existing[id] = True
     # we may need to rewrite the guid if the model schemas don't match,
@@ -222,7 +230,7 @@ def newImportNotes(self):
     dupesIgnored = []
     ########################################################################
     # check if any models with special field exist
-    midCheck= []
+    midCheck = []
     models = mw.col.db.scalar("""select models from col""")
     b = json.loads(models)
     a = list(b.values())
@@ -234,7 +242,7 @@ def newImportNotes(self):
     ########################################################################
 
     for note in self.src.db.execute(
-        "select * from notes"):
+            "select * from notes"):
         # turn the db result into a mutable list
         note = list(note)
         shouldAdd = self._uniquifyNote(note)
@@ -277,12 +285,13 @@ def newImportNotes(self):
         self.log.append(_("Updated %(a)d of %(b)d existing notes.") % dict(
             a=len(update), b=dupes))
         if dupesIgnored:
-            self.log.append(_("Some updates were ignored because note type has changed:"))
+            self.log.append(
+                _("Some updates were ignored because note type has changed:"))
             self.log.extend(dupesIgnored)
 
     newUpdate = []
     for row in update:
-        oldnote = mw.col.getNote(row[0]) 
+        oldnote = mw.col.getNote(row[0])
         newTags = [t for t in row[5].replace('\u3000', ' ').split(" ") if t]
         for tag in oldnote.tags:
             for i in newTags:
@@ -292,8 +301,9 @@ def newImportNotes(self):
 
         newTags = set(newTags)
         togetherTags = " %s " % " ".join(newTags)
-        if str(row[2]) in midCheck: 
-            trow = list(row)                     # if this note belongs to a model with "Special Field"
+        if str(row[2]) in midCheck:
+            # if this note belongs to a model with "Special Field"
+            trow = list(row)
             for i in SPECIAL_FIELD:
                 try:
                     row = list(row)
@@ -303,15 +313,14 @@ def newImportNotes(self):
                     fields = [item[1] for item in items]
                     splitRow = row[6].split("\x1f")
 
-
                     # valueLocal = mw.col.getNote(row[0]).values()
                     # splitRow[indexOfField] = valueLocal[indexOfField]
 
                     finalrow = ''
-                    count=0
+                    count = 0
                     for a in splitRow:
                         if count == fieldOrd:
-                            finalrow += str(fields[fieldOrd]) +"\x1f"
+                            finalrow += str(fields[fieldOrd]) + "\x1f"
                         else:
                             finalrow += a+"\x1f"
                         count = count + 1
@@ -319,20 +328,20 @@ def newImportNotes(self):
                     def rreplace(s, old, new, occurrence):
                         li = s.rsplit(old, occurrence)
                         return new.join(li)
-                    finarow= rreplace(finalrow, """\x1f""", '', 1)
+                    finarow = rreplace(finalrow, """\x1f""", '', 1)
                     row[6] = str(finarow)
                     row = tuple(row)
                     # if row[0] == 1558556384609: #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
-                    
+
                     # showInfo("%s"%str(splitRow))
                     # showInfo("%s"%str(indexOfField))
                     # showInfo("%s"%str(valueLocal))
                 except:
                     pass
         if COMBINE_TAGGING:
-            row=list(row)
+            row = list(row)
             row[5] = togetherTags
-            row=tuple(row)
+            row = tuple(row)
         newUpdate.append(row)
 
     self.dupes = dupes
@@ -352,5 +361,3 @@ def newImportNotes(self):
 
 Anki2Importer._importNotes = newImportNotes
 AnkiExporter.exportInto = newExportInto
-
-
