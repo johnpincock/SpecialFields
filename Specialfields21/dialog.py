@@ -1,6 +1,5 @@
 import copy
 import webbrowser
-
 import aqt
 from anki.consts import *
 from anki.utils import json
@@ -9,6 +8,14 @@ from aqt.qt import *
 from aqt.utils import askUser, getOnlyText, openHelp, showInfo, showWarning
 
 from .config import getDefaultConfig, getUserOption, writeConfig
+
+# #########################################################
+#
+# See this video for how to use this add-on: https://youtu.be/cg-tQ6Ut0IQ
+#
+# #########################################################
+
+
 
 fullconfig = getUserOption()
 configs = getUserOption("configs")
@@ -298,8 +305,9 @@ class FieldDialog(QDialog):
         mw.addonManager.writeConfig(__name__, fullconfig)
 
     def onHelp(self):
-        # openHelp("fields")
-        webbrowser.open('http://www.ankingmed.com/how-to-update')
+        #openHelp("fields")
+        webbrowser.open('https://youtu.be/cg-tQ6Ut0IQ')
+
 
 
 def onFields(self):
