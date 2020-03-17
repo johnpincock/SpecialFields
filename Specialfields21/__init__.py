@@ -1,13 +1,13 @@
-from aqt import mw
-from anki.lang import _
+from typing import Any, Dict, Tuple
 
-from anki.utils import json
-from aqt.utils import showWarning
 from anki.importing import Anki2Importer
-
-from .config import getUserOption
+from anki.lang import _
+from anki.utils import json
+from aqt import mw
+from aqt.utils import showWarning
 
 from . import dialog
+from .config import getUserOption
 
 # #########################################################
 #
@@ -22,7 +22,8 @@ MOD = 3
 configs = getUserOption("configs")
 current_config = configs["current config"]
 
-def getUserOptionSpecial(key = None, default = None):
+
+def getUserOptionSpecial(key=None, default=None):
     if key is None:
         return configs["current config"]
     if key in configs["current config"]:
@@ -30,32 +31,34 @@ def getUserOptionSpecial(key = None, default = None):
     else:
         return default
 
-def newImportNotes(self):
+
+def newImportNotes(self) -> None:
     # build guid -> (id,mod,mid) hash & map of existing note ids
-    self._notes = {}
+    self._notes: Dict[str, Tuple[int, int, int]] = {}
     existing = {}
     for id, guid, mod, mid in self.dst.db.execute(
-        "select id, guid, mod, mid from notes"):
+        "select id, guid, mod, mid from notes"
+    ):
         self._notes[guid] = (id, mod, mid)
         existing[id] = True
     # we may need to rewrite the guid if the model schemas don't match,
     # so we need to keep track of the changes for the card import stage
-    self._changedGuids = {}
+    self._changedGuids: Dict[str, bool] = {}
     # we ignore updates to changed schemas. we need to note the ignored
     # guids, so we avoid importing invalid cards
-    self._ignoredGuids = {}
+    self._ignoredGuids: Dict[str, bool] = {}
     # iterate over source collection
     add = []
     update = []
     dirty = []
     usn = self.dst.usn()
-    dupes = 0
-    dupesIgnored = []
+    self.dupes = 0
     dupesIdentical = []
+    dupesIgnored = []
     total = 0
     ########################################################################
     # check if any models with special field exist
-    midCheck= []
+    midCheck = []
     models = mw.col.db.scalar("""select models from col""")
     b = json.loads(models)
     a = list(b.values())
@@ -66,8 +69,7 @@ def newImportNotes(self):
                 midCheck.append(str(i["id"]))
     ########################################################################
 
-    for note in self.src.db.execute(
-        "select * from notes"):
+    for note in self.src.db.execute("select * from notes"):
         total += 1
         # turn the db result into a mutable list
         note = list(note)
@@ -87,7 +89,7 @@ def newImportNotes(self):
             self._notes[note[GUID]] = (note[0], note[3], note[MID])
         else:
             # a duplicate or changed schema - safe to update?
-            dupes += 1
+            self.dupes += 1
             if self.allowUpdate:
                 oldNid, oldMod, oldMid = self._notes[note[GUID]]
                 # will update if incoming note more recent
@@ -101,20 +103,16 @@ def newImportNotes(self):
                         update.append(note)
                         dirty.append(note[0])
                     else:
-                        '''dupesIgnored.append("%s: %s" % (
-                            self.col.models.get(oldMid)['name'],
-                            note[6].replace("\x1f", ",")
-                        ))'''
                         dupesIgnored.append(note)
                         self._ignoredGuids[note[GUID]] = True
                 else:
-                        dupesIdentical.append(note)
+                    dupesIdentical.append(note)
 
+    self.log.append(_("Notes found in file: %d") % total)
 
-    newUpdate = []
-    for row in update:
-        oldnote = mw.col.getNote(row[0]) 
-        newTags = [t for t in row[5].replace('\u3000', ' ').split(" ") if t]
+    for note in update:
+        oldnote = mw.col.getNote(note[0])
+        newTags = [t for t in note[5].replace('\u3000', ' ').split(" ") if t]
         for tag in oldnote.tags:
             for i in newTags:
                 if i.lower() == tag.lower():
@@ -123,31 +121,30 @@ def newImportNotes(self):
 
         newTags = set(newTags)
         togetherTags = " %s " % " ".join(newTags)
-        mid = str(row[2])
+        mid = str(note[2])
         if mid in midCheck:
             model = mw.col.models.get(mid)
             specialFields = getUserOptionSpecial("Special field", [])
             if getUserOptionSpecial("All fields are special", False):
                 specialFields = [fld['name'] for fld in model['flds']]
-            trow = list(row)                     # if this note belongs to a model with "Special Field"
+            # if this note belongs to a model with "Special Field"
+            trow = list(note)
             for i in specialFields:
                 try:
-                    row = list(row)
-                    items = mw.col.getNote(row[0]).items()
+                    items = mw.col.getNote(note[0]).items()
                     fieldOrd = [item for item in items if item[0] == i]
                     fieldOrd = items.index(fieldOrd[0])
                     fields = [item[1] for item in items]
-                    splitRow = row[6].split("\x1f")
+                    splitRow = note[6].split("\x1f")
 
-
-                    # valueLocal = mw.col.getNote(row[0]).values()
+                    # valueLocal = mw.col.getNote(note[0]).values()
                     # splitRow[indexOfField] = valueLocal[indexOfField]
 
                     finalrow = ''
-                    count=0
+                    count = 0
                     for a in splitRow:
                         if count == fieldOrd:
-                            finalrow += str(fields[fieldOrd]) +"\x1f"
+                            finalrow += str(fields[fieldOrd]) + "\x1f"
                         else:
                             finalrow += a+"\x1f"
                         count = count + 1
@@ -155,37 +152,29 @@ def newImportNotes(self):
                     def rreplace(s, old, new, occurrence):
                         li = s.rsplit(old, occurrence)
                         return new.join(li)
-                    finarow= rreplace(finalrow, """\x1f""", '', 1)
-                    row[6] = str(finarow)
-                    row = tuple(row)
-                    # if row[0] == 1558556384609: #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
-                    
+                    finarow = rreplace(finalrow, """\x1f""", '', 1)
+                    note[6] = str(finarow)
+                    # if note[0] == 1558556384609: #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
+
                 except:
                     pass
         if getUserOptionSpecial("Combine tagging", False):
-            row=list(row)
-            row[5] = togetherTags
-            row=tuple(row)
-        newUpdate.append(row)
+            note[5] = togetherTags
 
     self.log.append(_("Notes found in file: %d") % total)
 
     if dupesIgnored:
         self.log.append(
-            _("Notes that could not be imported as note type has changed: %d") %
-            len(dupesIgnored))
+            _("Notes that could not be imported as note type has changed: %d")
+            % len(dupesIgnored))
     if update:
         self.log.append(
-            _("Notes updated, as file had newer version: %d") %
-            len(newUpdate))
+            _("Notes updated, as file had newer version: %d") % len(update))
     if add:
-        self.log.append(
-            _("Notes added from file: %d") %
-            len(add))
+        self.log.append(_("Notes added from file: %d") % len(add))
     if dupesIdentical:
-        self.log.append(
-            _("Notes skipped, as they're already in your collection: %d") %
-            len(dupesIdentical))
+        self.log.append(_("Notes skipped, as they're already in your collection: %d") %
+                        len(dupesIdentical))
 
     self.log.append("")
 
@@ -201,23 +190,23 @@ def newImportNotes(self):
     if dupesIdentical:
         for row in dupesIdentical:
             self._logNoteRow(_("Identical"), row)
-    self.dupes = dupes
-    self.added = len(add)
-    self.updated = len(newUpdate)
 
+    # export info for calling code
+    self.added = len(add)
+    self.updated = len(update)
     # add to col
     self.dst.db.executemany(
-        "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)",
-        add)
+        "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)", add
+    )
     self.dst.db.executemany(
-        "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)",
-        newUpdate)
+        "insert or replace into notes values (?,?,?,?,?,?,?,?,?,?,?)", update
+    )
     self.dst.updateFieldCache(dirty)
     self.dst.tags.registerNotes(dirty)
 
     # deal with deck description
 
-    #if getUserOption("update deck description", False):
+    # if getUserOption("update deck description", False):
     if getUserOptionSpecial("update deck description", False):
         for importedDid, importedDeck in self.src.decks.decks.copy().items():
             localDid = self._did(importedDid)
@@ -227,6 +216,8 @@ def newImportNotes(self):
 
 
 Anki2Importer._importNotes = newImportNotes
+
+
 def _mid(self, srcMid):
     """Return local id for remote MID.
 
@@ -245,14 +236,15 @@ def _mid(self, srcMid):
     mid = srcMid
     srcModel = self.src.models.get(srcMid)
     srcScm = self.src.models.scmhash(srcModel)
-    updateNoteType = getUserOptionSpecial("update note styling") #getUserOption("update note styling")
+    # getUserOption("update note styling")
+    updateNoteType = getUserOptionSpecial("update note styling")
     while True:
         # missing from target col?
         if not self.dst.models.have(mid):
             # copy it over
             model = srcModel.copy()
-            model['id'] = mid
-            model['usn'] = self.col.usn()
+            model["id"] = mid
+            model["usn"] = self.col.usn()
             self.dst.models.update(model)
             break
         # there's an existing model; do the schemas match?
@@ -260,16 +252,64 @@ def _mid(self, srcMid):
         dstScm = self.dst.models.scmhash(dstModel)
         if srcScm == dstScm:
             # copy styling changes over if newer
-            if updateNoteType or (updateNoteType is None and srcModel['mod'] > dstModel['mod']):
+            if updateNoteType or (updateNoteType is None and srcModel["mod"] > dstModel["mod"]):
                 model = srcModel.copy()
-                model['id'] = mid
-                model['usn'] = self.col.usn()
+                model["id"] = mid
+                model["usn"] = self.col.usn()
                 self.dst.models.update(model)
             break
         # as they don't match, try next id
         mid += 1
-        # save map and return new mid
+    # save map and return new mid
     self._modelMap[srcMid] = mid
     return mid
+
+
 Anki2Importer._mid = _mid
 
+def _did(self, did: int) -> Any:
+    "Given did in src col, return local id."
+    # already converted?
+    if did in self._decks:
+        return self._decks[did]
+    # get the name in src
+    g = self.src.decks.get(did)
+    name = g["name"]
+    # if there's a prefix, replace the top level deck
+    if self.deckPrefix:
+        tmpname = "::".join(name.split("::")[1:])
+        name = self.deckPrefix
+        if tmpname:
+            name += "::" + tmpname
+    # manually create any parents so we can pull in descriptions
+    head = ""
+    for parent in name.split("::")[:-1]:
+        if head:
+            head += "::"
+        head += parent
+        idInSrc = self.src.decks.id(head)
+        self._did(idInSrc)
+    # if target is a filtered deck, we'll need a new deck name
+    deck = self.dst.decks.byName(name)
+    if deck and deck["dyn"]:
+        name = "%s %d" % (name, intTime())
+    # create in local
+    newid = self.dst.decks.id(name)
+    # pull conf over
+    if "conf" in g and g["conf"] != 1:
+        conf = self.src.decks.getConf(g["conf"])
+        self.dst.decks.save(conf)
+        self.dst.decks.updateConf(conf)
+        g2 = self.dst.decks.get(newid)
+        g2["conf"] = g["conf"]
+        self.dst.decks.save(g2)
+    # save desc
+    # only change
+    if getUserOption("update deck description", False):
+        deck = self.dst.decks.get(newid)
+        deck["desc"] = g["desc"]
+        self.dst.decks.save(deck)
+    # add to deck map and return
+    self._decks[did] = newid
+    return newid
+Anki2Importer._did = _did

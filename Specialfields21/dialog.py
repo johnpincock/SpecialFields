@@ -1,12 +1,13 @@
-from aqt import mw
-from aqt.qt import *
-from anki.consts import *
-import aqt
-from aqt.utils import showWarning, openHelp, getOnlyText, askUser, showInfo
-from anki.utils import json
-from .config import getUserOption, writeConfig, getDefaultConfig
 import copy
 import webbrowser
+import aqt
+from anki.consts import *
+from anki.utils import json
+from aqt import mw
+from aqt.qt import *
+from aqt.utils import askUser, getOnlyText, openHelp, showInfo, showWarning
+
+from .config import getDefaultConfig, getUserOption, writeConfig
 
 # #########################################################
 #
@@ -14,15 +15,18 @@ import webbrowser
 #
 # #########################################################
 
+
+
 fullconfig = getUserOption()
 configs = getUserOption("configs")
 
 addon = __name__.split(".")[0]
 
+
 class FieldDialog(QDialog):
 
     def __init__(self, mw, fields, ord=0, parent=None):
-        QDialog.__init__(self, parent or mw) #, Qt.Window)
+        QDialog.__init__(self, parent or mw)  # , Qt.Window)
         self.specialFields = fields
 
         self.mw = aqt.mw
@@ -32,9 +36,10 @@ class FieldDialog(QDialog):
         self.mw.checkpoint(_("Fields"))
         self.form = aqt.forms.fields.Ui_Dialog()
         self.form.setupUi(self)
-        self.setWindowTitle(_("Special Fields") )
+        self.setWindowTitle(_("Special Fields"))
         self.form.buttonBox.button(QDialogButtonBox.Help).setAutoDefault(False)
-        self.form.buttonBox.button(QDialogButtonBox.Close).setAutoDefault(False)
+        self.form.buttonBox.button(
+            QDialogButtonBox.Close).setAutoDefault(False)
         self.currentIdx = None
         self.fillFields()
         self.setupSignals()
@@ -60,12 +65,9 @@ class FieldDialog(QDialog):
 
         self.exec_()
 
-        
-
     ##########################################################################
     def setupOptions(self):
 
-        
         allSpecial = configs["current config"]["All fields are special"]
         combTaging = configs["current config"]["Combine tagging"]
         updateDesc = configs["current config"]["update deck description"]
@@ -109,10 +111,10 @@ class FieldDialog(QDialog):
         self.b3.clicked.connect(self.b3_press)
         self.b4.clicked.connect(self.b4_press)
         self.b5.clicked.connect(self.b5_press)
-        self.b6.clicked.connect(self.setConfig) #make this class
+        self.b6.clicked.connect(self.setConfig)  # make this class
         self.b7.clicked.connect(self.updatePresetConfig)
         self.b8.clicked.connect(self.importPresetConfig)
-        self.b9.clicked.connect(self.restoreConfig) #change this class
+        self.b9.clicked.connect(self.restoreConfig)  # change this class
 
     def fillFields(self):
         self.currentIdx = None
@@ -122,7 +124,7 @@ class FieldDialog(QDialog):
 
         for c, f in enumerate(fields):
             self.form.fieldList.addItem("{}: {}".format(c+1, f
-                ))
+                                                        ))
 
     def setupSignals(self):
         f = self.form
@@ -130,13 +132,11 @@ class FieldDialog(QDialog):
         f.fieldAdd.clicked.connect(self.onAdd)
         f.fieldDelete.clicked.connect(self.onDelete)
         f.buttonBox.helpRequested.connect(self.onHelp)
-        
 
     def b1_press(self):
         val = self.b1.isChecked()
         configs["current config"]["All fields are special"] = val
         mw.addonManager.writeConfig(__name__, fullconfig)
-
 
     def b2_press(self):
         val = self.b2.isChecked()
@@ -160,8 +160,9 @@ class FieldDialog(QDialog):
 
     def restoreConfig(self):
         addon = __name__.split(".")[0]
-        configs["current config"] = copy.deepcopy(configs["user default config"])
-    
+        configs["current config"] = copy.deepcopy(
+            configs["user default config"])
+
         mw.addonManager.writeConfig(__name__, fullconfig)
 
         allSpecial = configs["current config"]["All fields are special"]
@@ -180,7 +181,8 @@ class FieldDialog(QDialog):
         onFieldsExecute()
 
     def setConfig(self):
-        configs["user default config"] = copy.deepcopy(configs["current config"])
+        configs["user default config"] = copy.deepcopy(
+            configs["current config"])
         mw.addonManager.writeConfig(__name__, fullconfig)
 
         allSpecial = configs["current config"]["All fields are special"]
@@ -198,9 +200,6 @@ class FieldDialog(QDialog):
         self.close()
         onFieldsExecute()
 
-     
-                    
-
     def importPresetConfig(self):
         addon = __name__.split(".")[0]
 
@@ -209,7 +208,7 @@ class FieldDialog(QDialog):
         configs["current config"]["update deck description"] = False
         configs["current config"]["update note styling"] = False
         configs["current config"]["update only if newer"] = False
-        
+
         mw.addonManager.writeConfig(__name__, fullconfig)
 
         allSpecial = configs["current config"]["All fields are special"]
@@ -230,7 +229,6 @@ class FieldDialog(QDialog):
             self.b5.click()
 
         showInfo("Settings applied for importing tags")
-
 
     def updatePresetConfig(self):
         addon = __name__.split(".")[0]
@@ -263,12 +261,10 @@ class FieldDialog(QDialog):
 
         showInfo("Settings applied for updating a deck")
 
-
     def onRowChange(self, idx):
         if idx == -1:
             return
         self.saveField()
-
 
     def _uniqueName(self, prompt, ignoreOrd=None, old=""):
         txt = getOnlyText(prompt, default=old)
@@ -287,7 +283,7 @@ class FieldDialog(QDialog):
         self.specialFields = self.specialFields.append(name)
         self.saveField()
         self.fillFields()
-        fields = configs["current config"]["Special field"] 
+        fields = configs["current config"]["Special field"]
         self.specialFields = fields
         self.form.fieldList.setCurrentRow(len(self.specialFields)-1)
         mw.addonManager.writeConfig(__name__, fullconfig)
@@ -303,11 +299,10 @@ class FieldDialog(QDialog):
 
         if self.currentIdx is None:
             return
-        
+
         fields = configs["current config"]["Special field"]
         fields = self.specialFields
         mw.addonManager.writeConfig(__name__, fullconfig)
-
 
     def onHelp(self):
         #openHelp("fields")
@@ -320,13 +315,13 @@ def onFields(self):
     fields = configs["current config"]["Special field"]
     FieldDialog(mw, fields, parent=self)
 
+
 def onFieldsExecute():
     onFields(mw)
+
 
 mw.addonManager.setConfigAction(__name__, onFieldsExecute)
 action = QAction("Special Fields", mw)
 action.setShortcut(QKeySequence("Ctrl+shift+s"))
 action.triggered.connect(onFields)
 mw.form.menuTools.addAction(action)
-
-
