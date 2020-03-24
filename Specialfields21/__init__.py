@@ -291,6 +291,7 @@ def _did(self, did: int) -> Any:
         self._did(idInSrc)
     # if target is a filtered deck, we'll need a new deck name
     deck = self.dst.decks.byName(name)
+    is_new = not bool(deck)
     if deck and deck["dyn"]:
         name = "%s %d" % (name, intTime())
     # create in local
@@ -305,7 +306,7 @@ def _did(self, did: int) -> Any:
         self.dst.decks.save(g2)
     # save desc
     # only change
-    if getUserOption("update deck description", False):
+    if is_new or getUserOption("update deck description", False):
         deck = self.dst.decks.get(newid)
         deck["desc"] = g["desc"]
         self.dst.decks.save(deck)
