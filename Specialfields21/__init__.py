@@ -57,9 +57,7 @@ def newImportNotes(self) -> None:
     ########################################################################
     # check if any models with special field exist
     midCheck = []
-    models = mw.col.db.scalar("""select models from col""")
-    b = json.loads(models)
-    a = list(b.values())
+    a = mw.col.models.all()
     for i in a:
         fields = i["flds"]
         for n in fields:
