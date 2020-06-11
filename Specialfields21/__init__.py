@@ -1,5 +1,3 @@
-from typing import Any, Dict, Tuple
-
 from anki.importing import Anki2Importer
 from anki.lang import _
 from anki.utils import json
@@ -34,7 +32,7 @@ def getUserOptionSpecial(key=None, default=None):
 
 def newImportNotes(self) -> None:
     # build guid -> (id,mod,mid) hash & map of existing note ids
-    self._notes: Dict[str, Tuple[int, int, int]] = {}
+    self._notes = {}
     existing = {}
     for id, guid, mod, mid in self.dst.db.execute(
         "select id, guid, mod, mid from notes"
@@ -43,10 +41,10 @@ def newImportNotes(self) -> None:
         existing[id] = True
     # we may need to rewrite the guid if the model schemas don't match,
     # so we need to keep track of the changes for the card import stage
-    self._changedGuids: Dict[str, bool] = {}
+    self._changedGuids = {}
     # we ignore updates to changed schemas. we need to note the ignored
     # guids, so we avoid importing invalid cards
-    self._ignoredGuids: Dict[str, bool] = {}
+    self._ignoredGuids = {}
     # iterate over source collection
     add = []
     update = []
@@ -267,7 +265,7 @@ def _mid(self, srcMid):
 
 Anki2Importer._mid = _mid
 
-def _did(self, did: int) -> Any:
+def _did(self, did: int):
     "Given did in src col, return local id."
     # already converted?
     if did in self._decks:
