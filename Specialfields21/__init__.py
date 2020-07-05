@@ -204,7 +204,7 @@ def newImportNotes(self) -> None:
 
     # if getUserOption("update deck description", False):
     if getUserOptionSpecial("update deck description", False):
-        for importedDid, importedDeck in self.src.decks.decks.copy().items():
+        for importedDid, importedDeck in ((d["id"], d) for d in self.src.decks.all()):
             localDid = self._did(importedDid)
             localDeck = self.dst.decks.get(localDid)
             localDeck['desc'] = importedDeck['desc']
