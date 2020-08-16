@@ -250,6 +250,7 @@ def _mid(self, srcMid):
             # copy styling changes over if newer
             if updateNoteType or (updateNoteType is None and srcModel["mod"] > dstModel["mod"]):
                 model = srcModel.copy()
+                model["mod"] = max(srcModel["mod"], dstModel["mod"])
                 model["id"] = mid
                 model["usn"] = self.col.usn()
                 self.dst.models.update(model)
