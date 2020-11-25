@@ -295,6 +295,7 @@ def _mid(self, srcMid):
 
 Anki2Importer._mid = _mid
 
+
 def _did(self, did: int):
     "Given did in src col, return local id."
     # already converted?
@@ -343,4 +344,6 @@ def _did(self, did: int):
     # add to deck map and return
     self._decks[did] = newid
     return newid
+
+
 Anki2Importer._did = _did

@@ -37,7 +37,7 @@ class FieldMapping(NoteTypeMapping):
         result = {} 
 
         for i in range(self.tmpl_amount):
-            result[i] = i
+            result[i] = self.map_card_type(i)
 
         return result
 
