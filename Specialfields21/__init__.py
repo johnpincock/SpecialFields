@@ -6,6 +6,7 @@ from aqt.utils import showWarning
 
 from . import dialog
 from .config import getUserOption
+from .note_type_mapping import create_mapping_on_field_name_equality
 
 # #########################################################
 #
@@ -288,7 +289,7 @@ def _did(self, did: int):
         self._did(idInSrc)
     # if target is a filtered deck, we'll need a new deck name
     deck = self.dst.decks.byName(name)
-    
+
     is_new = not bool(deck)
 
     if deck and deck["dyn"]:
