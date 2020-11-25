@@ -1,6 +1,7 @@
 from anki.importing import Anki2Importer
 from anki.lang import _
 from anki.utils import json
+from anki.hooks import schema_will_change
 from aqt import mw
 from aqt.utils import showWarning
 
@@ -14,6 +15,7 @@ from .note_type_mapping import create_mapping_on_field_name_equality
 #
 # #########################################################
 
+NID = 0
 GUID = 1
 MID = 2
 MOD = 3
@@ -66,6 +68,10 @@ def newImportNotes(self) -> None:
                 midCheck.append(str(i["id"]))
     ########################################################################
 
+    ######### note type mapping
+    schema_will_change.remove(mw.onSchemaMod)
+    ######### /note type mapping
+
     for note in self.src.db.execute("select * from notes"):
         total += 1
         # turn the db result into a mutable list
@@ -90,6 +96,7 @@ def newImportNotes(self) -> None:
             if self.allowUpdate:
                 oldNid, oldMod, oldMid = self._notes[note[GUID]]
                 # will update if incoming note more recent
+
                 if oldMod < note[MOD] or (not getUserOptionSpecial("update only if newer", True)):
                     # safe if note types identical
                     if oldMid == note[MID]:
@@ -100,12 +107,35 @@ def newImportNotes(self) -> None:
                         update.append(note)
                         dirty.append(note[0])
                     else:
-                        dupesIgnored.append(note)
-                        self._ignoredGuids[note[GUID]] = True
+                        ######### note type mapping
+                        old_model = self.dst.models.get(oldMid)
+                        target_model = self.dst.models.get(note[MID])
+
+                        mapping = create_mapping_on_field_name_equality(old_model, target_model)
+
+                        if mapping:
+                            self.dst.models.change(
+                                old_model,
+                                [note[NID]],
+                                target_model,
+                                mapping.get_field_map(),
+                                mapping.get_card_type_map(),
+                            )
+
+                            update.append(note)
+
+                        ######### /note type mapping
+                        else:
+                            dupesIgnored.append(note)
+                            self._ignoredGuids[note[GUID]] = True
                 else:
                     dupesIdentical.append(note)
 
     self.log.append(_("Notes found in file: %d") % total)
+
+    ######### note type mapping
+    schema_will_change.append(mw.onSchemaMod)
+    ######### /note type mapping
 
     for note in update:
         oldnote = mw.col.getNote(note[0])
