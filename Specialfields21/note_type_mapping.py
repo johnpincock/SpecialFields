@@ -34,7 +34,7 @@ class FieldMapping(NoteTypeMapping):
         self.fld_mappings = fld_mappings
 
     def get_card_type_map(self) -> Dict[int, Optional[int]]:
-        result = {} 
+        result = {}
 
         for i in range(self.tmpl_amount):
             result[i] = self.map_card_type(i)
@@ -72,7 +72,9 @@ def templates_match(model: NoteType, other_model: NoteType) -> bool:
     return True
 
 
-def create_mapping_on_field_name_equality(from_model: NoteType, to_model: NoteType) -> Optional[NoteTypeMapping]:
+def create_mapping_on_field_name_equality(
+    from_model: NoteType, to_model: NoteType
+) -> Optional[NoteTypeMapping]:
     if not templates_match(from_model, to_model):
         return None
 

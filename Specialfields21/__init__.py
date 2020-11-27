@@ -64,7 +64,9 @@ def newImportNotes(self) -> None:
     for i in a:
         fields = i["flds"]
         for n in fields:
-            if n['name'] in getUserOptionSpecial("Special field", []) or getUserOptionSpecial("All fields are special", False):
+            if n["name"] in getUserOptionSpecial(
+                "Special field", []
+            ) or getUserOptionSpecial("All fields are special", False):
                 midCheck.append(str(i["id"]))
     ########################################################################
 
@@ -97,7 +99,9 @@ def newImportNotes(self) -> None:
                 oldNid, oldMod, oldMid = self._notes[note[GUID]]
                 # will update if incoming note more recent
 
-                if oldMod < note[MOD] or (not getUserOptionSpecial("update only if newer", True)):
+                if oldMod < note[MOD] or (
+                    not getUserOptionSpecial("update only if newer", True)
+                ):
                     # safe if note types identical
                     if oldMid == note[MID]:
                         # incoming note should use existing id
@@ -108,12 +112,16 @@ def newImportNotes(self) -> None:
                         dirty.append(note[0])
                     else:
                         ######### note type mapping
+                        updateNoteType = getUserOptionSpecial("update note styling")
+
                         old_model = self.dst.models.get(oldMid)
                         target_model = self.dst.models.get(note[MID])
 
-                        mapping = create_mapping_on_field_name_equality(old_model, target_model)
+                        mapping = create_mapping_on_field_name_equality(
+                            old_model, target_model
+                        )
 
-                        if mapping:
+                        if updateNoteType and mapping:
                             self.dst.models.change(
                                 old_model,
                                 [note[NID]],
@@ -139,7 +147,7 @@ def newImportNotes(self) -> None:
 
     for note in update:
         oldnote = mw.col.getNote(note[0])
-        newTags = [t for t in note[5].replace('\u3000', ' ').split(" ") if t]
+        newTags = [t for t in note[5].replace("\u3000", " ").split(" ") if t]
         for tag in oldnote.tags:
             for i in newTags:
                 if i.lower() == tag.lower():
@@ -153,7 +161,7 @@ def newImportNotes(self) -> None:
             model = mw.col.models.get(mid)
             specialFields = getUserOptionSpecial("Special field", [])
             if getUserOptionSpecial("All fields are special", False):
-                specialFields = [fld['name'] for fld in model['flds']]
+                specialFields = [fld["name"] for fld in model["flds"]]
             # if this note belongs to a model with "Special Field"
             trow = list(note)
             for i in specialFields:
@@ -167,19 +175,20 @@ def newImportNotes(self) -> None:
                     # valueLocal = mw.col.getNote(note[0]).values()
                     # splitRow[indexOfField] = valueLocal[indexOfField]
 
-                    finalrow = ''
+                    finalrow = ""
                     count = 0
                     for a in splitRow:
                         if count == fieldOrd:
                             finalrow += str(fields[fieldOrd]) + "\x1f"
                         else:
-                            finalrow += a+"\x1f"
+                            finalrow += a + "\x1f"
                         count = count + 1
 
                     def rreplace(s, old, new, occurrence):
                         li = s.rsplit(old, occurrence)
                         return new.join(li)
-                    finarow = rreplace(finalrow, """\x1f""", '', 1)
+
+                    finarow = rreplace(finalrow, """\x1f""", "", 1)
                     note[6] = str(finarow)
                     # if note[0] == 1558556384609: #FOR TROUBLE SHOOTING ! Change to the card.id you are uncertain about
 
@@ -193,15 +202,17 @@ def newImportNotes(self) -> None:
     if dupesIgnored:
         self.log.append(
             _("Notes that could not be imported as note type has changed: %d")
-            % len(dupesIgnored))
+            % len(dupesIgnored)
+        )
     if update:
-        self.log.append(
-            _("Notes updated, as file had newer version: %d") % len(update))
+        self.log.append(_("Notes updated, as file had newer version: %d") % len(update))
     if add:
         self.log.append(_("Notes added from file: %d") % len(add))
     if dupesIdentical:
-        self.log.append(_("Notes skipped, as they're already in your collection: %d") %
-                        len(dupesIdentical))
+        self.log.append(
+            _("Notes skipped, as they're already in your collection: %d")
+            % len(dupesIdentical)
+        )
 
     self.log.append("")
 
@@ -238,7 +249,7 @@ def newImportNotes(self) -> None:
         for importedDid, importedDeck in ((d["id"], d) for d in self.src.decks.all()):
             localDid = self._did(importedDid)
             localDeck = self.dst.decks.get(localDid)
-            localDeck['desc'] = importedDeck['desc']
+            localDeck["desc"] = importedDeck["desc"]
             self.dst.decks.save(localDeck)
 
 
@@ -279,7 +290,9 @@ def _mid(self, srcMid):
         dstScm = self.dst.models.scmhash(dstModel)
         if srcScm == dstScm:
             # copy styling changes over if newer
-            if updateNoteType or (updateNoteType is None and srcModel["mod"] > dstModel["mod"]):
+            if updateNoteType or (
+                updateNoteType is None and srcModel["mod"] > dstModel["mod"]
+            ):
                 model = srcModel.copy()
                 model["mod"] = max(srcModel["mod"], dstModel["mod"])
                 model["id"] = mid
