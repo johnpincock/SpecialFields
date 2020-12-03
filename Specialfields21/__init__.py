@@ -57,18 +57,6 @@ def newImportNotes(self) -> None:
     dupesIdentical = []
     dupesIgnored = []
     total = 0
-    ########################################################################
-    # check if any models with special field exist
-    midCheck = []
-    a = mw.col.models.all()
-    for i in a:
-        fields = i["flds"]
-        for n in fields:
-            if n["name"] in getUserOptionSpecial(
-                "Special field", []
-            ) or getUserOptionSpecial("All fields are special", False):
-                midCheck.append(str(i["id"]))
-    ########################################################################
 
     ######### note type mapping
     schema_will_change.remove(mw.onSchemaMod)
@@ -144,6 +132,19 @@ def newImportNotes(self) -> None:
     ######### note type mapping
     schema_will_change.append(mw.onSchemaMod)
     ######### /note type mapping
+
+    ########################################################################
+    # check if any models with special field exist
+    midCheck = []
+    a = mw.col.models.all()
+    for i in a:
+        fields = i["flds"]
+        for n in fields:
+            if n["name"] in getUserOptionSpecial(
+                "Special field", []
+            ) or getUserOptionSpecial("All fields are special", False):
+                midCheck.append(str(i["id"]))
+    ########################################################################
 
     for note in update:
         oldnote = mw.col.getNote(note[0])
