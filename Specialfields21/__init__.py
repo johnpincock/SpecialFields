@@ -118,7 +118,11 @@ def newImportNotes(self) -> None:
                                 mapping.get_card_type_map(),
                             )
 
+                            note[0] = oldNid
+                            note[4] = usn
+                            note[6] = self._mungeMedia(note[MID], note[6])
                             update.append(note)
+                            dirty.append(note[0])
 
                         ######### /note type mapping
                         else:
