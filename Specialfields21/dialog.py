@@ -38,8 +38,10 @@ class FieldDialog(QDialog):
         self.form.setupUi(self)
         self.setWindowTitle(_("Special Fields"))
         self.form.buttonBox.button(QDialogButtonBox.Help).setAutoDefault(False)
-        self.form.buttonBox.button(
-            QDialogButtonBox.Close).setAutoDefault(False)
+        if self.form.buttonBox.button(QDialogButtonBox.Close):
+            self.form.buttonBox.button(QDialogButtonBox.Close).setAutoDefault(False)
+        else:
+            self.form.buttonBox.button(QDialogButtonBox.Close)
         self.currentIdx = None
         self.fillFields()
         self.setupSignals()
