@@ -13,6 +13,8 @@ from .note_type_mapping import create_mapping_on_field_name_equality
 #
 # See this video for how to use this add-on: https://youtu.be/cg-tQ6Ut0IQ
 #
+KEEPTAGTEXT = "%%keep%%"
+#
 # #########################################################
 
 NID = 0
@@ -169,7 +171,7 @@ def newImportNotes(self) -> None:
                 if i.lower() == tag.lower():
                     tag = i
 
-            if "%%keep%%" in tag:
+            if KEEPTAGTEXT in tag:
                 keepTags.append(tag)
 
         keepTags = set(keepTags)
