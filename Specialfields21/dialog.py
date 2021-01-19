@@ -83,6 +83,7 @@ class FieldDialog(QDialog):
         self.b2 = QCheckBox("Combine tagging", self)
         self.form._2.addWidget(self.b2)
         self.b2.setChecked(combTaging)
+        self.b2.setToolTip('<div style="background:red;">If this is unchecked, all tags except those containing %%keep%% will be updated</div>')
 
         self.b3 = QCheckBox("Update deck description", self)
         self.form._2.addWidget(self.b3)
