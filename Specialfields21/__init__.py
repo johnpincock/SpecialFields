@@ -13,6 +13,8 @@ from .note_type_mapping import create_mapping_on_field_name_equality
 #
 # See this video for how to use this add-on: https://youtu.be/cg-tQ6Ut0IQ
 #
+KEEPTAGTEXT = "%%keep%%"
+#
 # #########################################################
 
 NID = 0
@@ -161,6 +163,21 @@ def newImportNotes(self) -> None:
 
         newTags = set(newTags)
         togetherTags = " %s " % " ".join(newTags)
+
+        ######### KEEP tags
+        keepTags = [t for t in note[5].replace("\u3000", " ").split(" ") if t]
+        for tag in oldnote.tags:
+            for i in keepTags:
+                if i.lower() == tag.lower():
+                    tag = i
+
+            if KEEPTAGTEXT in tag:
+                keepTags.append(tag)
+
+        keepTags = set(keepTags)
+        keepTagsTogether = " %s " % " ".join(keepTags)
+        ######### /KEEP tags
+
         mid = str(note[2])
         if mid in midCheck:
             model = mw.col.models.get(mid)
@@ -201,6 +218,8 @@ def newImportNotes(self) -> None:
                     pass
         if getUserOptionSpecial("Combine tagging", False):
             note[5] = togetherTags
+        else:
+            note[5] = keepTagsTogether
 
     self.log.append(_("Notes found in file: %d") % total)
 
