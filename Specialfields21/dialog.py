@@ -88,7 +88,6 @@ class FieldDialog(QDialog):
         self.b2 = QCheckBox("Combine tagging", self)
         self.form._2.addWidget(self.b2)
         self.b2.setChecked(combTaging)
-        self.b2.setToolTip(f'<div style="background:red;">If this is unchecked, all tags except those containing "{KEEPTAGTEXT}" will be updated</div>')
 
         self.b3 = QCheckBox("Update deck description", self)
         self.form._2.addWidget(self.b3)
@@ -118,11 +117,12 @@ class FieldDialog(QDialog):
         self.l1 = QLabel("<div style='font-weight: bold'>Protected Tags: </div>", self)
         self.l1.setAlignment(Qt.AlignRight)
         self.form._2.addWidget(self.l1)
+        self.l1.setToolTip(f'<div style="background:red;">When updating, all tags except those containing these phrases will be updated (separate multiple terms by a space)</div>')
 
         self.t1 = QLineEdit(self)
         KEEPTAGSTRING = ' '.join(str(elem) for elem in KEEPTAGTEXT)
         self.t1.setText(KEEPTAGSTRING)
-        self.form._2.addWidget(self.t1)
+        self.form._2.addWidget(self.t1, 7, 1, 1, 2)
         self.t1.textChanged.connect(self.getTagsText)
         
 
