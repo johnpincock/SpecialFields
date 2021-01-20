@@ -2,6 +2,7 @@
   {"current config": {
     "All fields are special": true,
     "Combine tagging": true,
+    "Protected tags": ["%%keep%%"],
     "Special field":
     ["Lecture Notes", "Missed Questions", "Pathoma", "Boards and Beyond"],
     "update deck description": false,
@@ -11,6 +12,7 @@
   "user default config": {
     "All fields are special": true,
     "Combine tagging": true,
+    "Protected tags": ["%%keep%%"],
     "Special field":
     ["Lecture Notes", "Missed Questions", "Pathoma", "Boards and Beyond"],
     "update deck description": false,
