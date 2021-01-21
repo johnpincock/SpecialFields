@@ -171,7 +171,7 @@ def newImportNotes(self) -> None:
                     tag = i
 
             for item in returnTagsText():
-                if item.lower() in tag:
+                if item in tag:
                     keepTags.append(tag)
 
         keepTags = set(keepTags)

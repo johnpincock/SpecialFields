@@ -20,7 +20,7 @@ from .config import getDefaultConfig, getUserOption, writeConfig
 fullconfig = getUserOption()
 configs = getUserOption("configs")
 
-KEEPTAGTEXT = configs["current config"]["Protected tags"]
+KEEPTAGTEXT = configs["current config"]["Protected tags"] if "Protected tags" in configs["current config"] else "%%keep%%"
 
 addon = __name__.split(".")[0]
 
@@ -139,7 +139,7 @@ class FieldDialog(QDialog):
     def getTagsText(self):
         global KEEPTAGTEXT 
         val = self.t1.text()
-        KEEPTAGTEXT = val.split(" ")
+        KEEPTAGTEXT = [v for v in val.split(" ") if v]
         configs["current config"]["Protected tags"] = KEEPTAGTEXT
         mw.addonManager.writeConfig(__name__, fullconfig)
         #showInfo("done")
