@@ -20,7 +20,12 @@ from .config import getDefaultConfig, getUserOption, writeConfig
 fullconfig = getUserOption()
 configs = getUserOption("configs")
 
-KEEPTAGTEXT = configs["current config"]["Protected tags"] if "Protected tags" in configs["current config"] else "%%keep%%"
+if "Protected tags" not in configs["current config"]:
+    configs["current config"]["Protected tags"] = ["%%keep%%"]
+    configs["user default config"]["Protected tags"] = ["%%keep%%"]
+    mw.addonManager.writeConfig(__name__, fullconfig)
+
+KEEPTAGTEXT = configs["current config"]["Protected tags"] 
 
 addon = __name__.split(".")[0]
 
@@ -117,7 +122,7 @@ class FieldDialog(QDialog):
         self.l1 = QLabel("<div style='font-weight: bold'>Protected Tags: </div>", self)
         self.l1.setAlignment(Qt.AlignRight)
         self.form._2.addWidget(self.l1)
-        self.l1.setToolTip(f'<div style="background:red;">When updating, all tags except those containing these phrases will be updated (separate multiple terms by a space)</div>')
+        self.l1.setToolTip(f'<div style="background:red;">When updating, all tags except those containing these phrases will be updated (separate multiple terms by a space - case sensitive!)</div>')
 
         self.t1 = QLineEdit(self)
         KEEPTAGSTRING = ' '.join(str(elem) for elem in KEEPTAGTEXT)
