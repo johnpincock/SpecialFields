@@ -20,6 +20,13 @@ from .config import getDefaultConfig, getUserOption, writeConfig
 fullconfig = getUserOption()
 configs = getUserOption("configs")
 
+if "Protected tags" not in configs["current config"]:
+    configs["current config"]["Protected tags"] = ["%%keep%%"]
+    configs["user default config"]["Protected tags"] = ["%%keep%%"]
+    mw.addonManager.writeConfig(__name__, fullconfig)
+
+KEEPTAGTEXT = configs["current config"]["Protected tags"] 
+
 addon = __name__.split(".")[0]
 
 
@@ -48,6 +55,7 @@ class FieldDialog(QDialog):
         self.form.fieldList.setCurrentRow(0)
 
         self.setupOptions()
+        self.getTagsText()
         # self.form.buttonBox.button(QRadioButton("Upload Collection", self))
         # self.upload_but.clicked.connect(self.uploadBut)
 
@@ -76,6 +84,8 @@ class FieldDialog(QDialog):
         updateStyle = configs["current config"]["update note styling"]
         upOnlyIfNewer = configs["current config"]["update only if newer"]
 
+        global KEEPTAGTEXT
+
         self.b1 = QCheckBox("All fields are special", self)
         self.form._2.addWidget(self.b1)
         self.b1.setChecked(allSpecial)
@@ -83,7 +93,6 @@ class FieldDialog(QDialog):
         self.b2 = QCheckBox("Combine tagging", self)
         self.form._2.addWidget(self.b2)
         self.b2.setChecked(combTaging)
-        self.b2.setToolTip('<div style="background:red;">If this is unchecked, all tags except those containing %%keep%% will be updated</div>')
 
         self.b3 = QCheckBox("Update deck description", self)
         self.form._2.addWidget(self.b3)
@@ -109,6 +118,19 @@ class FieldDialog(QDialog):
         self.b9 = QPushButton("Restore Defaults", self)
         self.form._2.addWidget(self.b9)
 
+        
+        self.l1 = QLabel("<div style='font-weight: bold'>Protected Tags: </div>", self)
+        self.l1.setAlignment(Qt.AlignRight)
+        self.form._2.addWidget(self.l1)
+        self.l1.setToolTip(f'<div style="background:red;">When updating, all tags except those containing these phrases will be updated (separate multiple terms by a space - case sensitive!)</div>')
+
+        self.t1 = QLineEdit(self)
+        KEEPTAGSTRING = ' '.join(str(elem) for elem in KEEPTAGTEXT)
+        self.t1.setText(KEEPTAGSTRING)
+        self.form._2.addWidget(self.t1, 7, 1, 1, 2)
+        self.t1.textChanged.connect(self.getTagsText)
+        
+
         self.b1.clicked.connect(self.b1_press)
         self.b2.clicked.connect(self.b2_press)
         self.b3.clicked.connect(self.b3_press)
@@ -118,7 +140,19 @@ class FieldDialog(QDialog):
         self.b7.clicked.connect(self.updatePresetConfig)
         self.b8.clicked.connect(self.importPresetConfig)
         self.b9.clicked.connect(self.restoreConfig)  # change this class
-
+    
+    def getTagsText(self):
+        global KEEPTAGTEXT 
+        val = self.t1.text()
+        KEEPTAGTEXT = [v for v in val.split(" ") if v]
+        configs["current config"]["Protected tags"] = KEEPTAGTEXT
+        mw.addonManager.writeConfig(__name__, fullconfig)
+        #showInfo("done")
+    
+    def returnTagsText(self):
+        getTagsText()
+        return KEEPTAGTEXT
+    
     def fillFields(self):
         self.currentIdx = None
         self.form.fieldList.clear()
@@ -173,12 +207,15 @@ class FieldDialog(QDialog):
         updateDesc = configs["current config"]["update deck description"]
         updateStyle = configs["current config"]["update note styling"]
         upOnlyIfNewer = configs["current config"]["update only if newer"]
+        global KEEPTAGTEXT
+        KEEPTAGTEXT = configs["current config"]["Protected tags"]
 
         self.b1.setChecked(allSpecial)
         self.b2.setChecked(combTaging)
         self.b3.setChecked(updateDesc)
         self.b4.setChecked(updateStyle)
         self.b5.setChecked(upOnlyIfNewer)
+        #self.t1.setText(KEEPTAGTEXT)
         showInfo("Settings Restored")
         self.close()
         onFieldsExecute()
@@ -193,12 +230,15 @@ class FieldDialog(QDialog):
         updateDesc = configs["current config"]["update deck description"]
         updateStyle = configs["current config"]["update note styling"]
         upOnlyIfNewer = configs["current config"]["update only if newer"]
+        global KEEPTAGTEXT
+        KEEPTAGTEXT = configs["current config"]["Protected tags"]
 
         self.b1.setChecked(allSpecial)
         self.b2.setChecked(combTaging)
         self.b3.setChecked(updateDesc)
         self.b4.setChecked(updateStyle)
         self.b5.setChecked(upOnlyIfNewer)
+        #self.t1.setText(KEEPTAGTEXT)
         showInfo("Settings Restored")
         self.close()
         onFieldsExecute()
@@ -311,7 +351,9 @@ class FieldDialog(QDialog):
         #openHelp("fields")
         webbrowser.open('https://youtu.be/cg-tQ6Ut0IQ')
 
-
+def returnTagsText():
+    global KEEPTAGTEXT
+    return KEEPTAGTEXT
 
 def onFields(self):
     # Use existing FieldDialog as template for UI.
