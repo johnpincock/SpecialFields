@@ -11,7 +11,7 @@ from .config import getDefaultConfig, getUserOption, writeConfig
 
 # #########################################################
 #
-# See this video for how to use this add-on: https://youtu.be/cg-tQ6Ut0IQ
+# See this video for how to use this add-on: https://youtu.be/TTHpODHBk3U
 #
 # #########################################################
 
@@ -349,7 +349,7 @@ class FieldDialog(QDialog):
 
     def onHelp(self):
         #openHelp("fields")
-        webbrowser.open('https://youtu.be/cg-tQ6Ut0IQ')
+        webbrowser.open('https://youtu.be/TTHpODHBk3U')
 
 def returnTagsText():
     global KEEPTAGTEXT
