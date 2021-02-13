@@ -173,6 +173,9 @@ def newImportNotes(self) -> None:
             for item in returnTagsText():
                 if item in tag:
                     keepTags.append(tag)
+                    
+            if "marked" in tag or "leech" in tag:
+                keepTags.append(tag)
 
         keepTags = set(keepTags)
         keepTagsTogether = " %s " % " ".join(keepTags)
