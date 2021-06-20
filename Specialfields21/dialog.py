@@ -87,47 +87,47 @@ class FieldDialog(QDialog):
         global KEEPTAGTEXT
 
         self.b1 = QCheckBox("All fields are special", self)
-        self.form._2.addWidget(self.b1)
+        self.form._2.addWidget(self.b1, 0, 0)
         self.b1.setChecked(allSpecial)
 
         self.b2 = QCheckBox("Combine tagging", self)
-        self.form._2.addWidget(self.b2)
+        self.form._2.addWidget(self.b2, 0, 1)
         self.b2.setChecked(combTaging)
 
         self.b3 = QCheckBox("Update deck description", self)
-        self.form._2.addWidget(self.b3)
+        self.form._2.addWidget(self.b3, 0, 2)
         self.b3.setChecked(updateDesc)
 
         self.b4 = QCheckBox("Update note styling", self)
-        self.form._2.addWidget(self.b4)
+        self.form._2.addWidget(self.b4, 1, 0)
         self.b4.setChecked(updateStyle)
 
         self.b5 = QCheckBox("Update only if newer", self)
-        self.form._2.addWidget(self.b5)
+        self.form._2.addWidget(self.b5, 1, 1)
         self.b5.setChecked(upOnlyIfNewer)
 
         self.b6 = QPushButton("Set Defaults", self)
-        self.form._2.addWidget(self.b6)
+        self.form._2.addWidget(self.b6, 1, 2)
 
         self.b7 = QPushButton("'Update' Settings", self)
-        self.form._2.addWidget(self.b7)
+        self.form._2.addWidget(self.b7, 2, 0)
 
         self.b8 = QPushButton("'Import Tags' Settings", self)
-        self.form._2.addWidget(self.b8)
+        self.form._2.addWidget(self.b8, 2, 1)
 
         self.b9 = QPushButton("Restore Defaults", self)
-        self.form._2.addWidget(self.b9)
+        self.form._2.addWidget(self.b9, 2, 2)
 
         
         self.l1 = QLabel("<div style='font-weight: bold'>Protected Tags: </div>", self)
         self.l1.setAlignment(Qt.AlignRight)
-        self.form._2.addWidget(self.l1)
+        self.form._2.addWidget(self.l1, 3, 0)
         self.l1.setToolTip(f'<div style="background:red;">When updating, all tags except those containing these phrases will be updated (separate multiple terms by a space - case sensitive!)</div>')
 
         self.t1 = QLineEdit(self)
         KEEPTAGSTRING = ' '.join(str(elem) for elem in KEEPTAGTEXT)
         self.t1.setText(KEEPTAGSTRING)
-        self.form._2.addWidget(self.t1, 7, 1, 1, 2)
+        self.form._2.addWidget(self.t1, 3, 1, 1, 2)
         self.t1.textChanged.connect(self.getTagsText)
         
 
