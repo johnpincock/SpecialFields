@@ -54,23 +54,19 @@ class FieldDialog(QDialog):
         self.setupSignals()
         self.form.fieldList.setCurrentRow(0)
 
-        self.setupOptions()
-        self.getTagsText()
-        # self.form.buttonBox.button(QRadioButton("Upload Collection", self))
-        # self.upload_but.clicked.connect(self.uploadBut)
-
         # removing irrelevant stuff from general "fields.ui" template
-        # self.form._2.setParent(None)
-        self.form.rtl.setParent(None)
-        self.form.fontFamily.setParent(None)
-        self.form.fontSize.setParent(None)
-        self.form.sticky.setParent(None)
-        self.form.label_18.setParent(None)
-        self.form.fontFamily.setParent(None)
+        for r in reversed(range(self.form._2.count())):
+            # reversed because removing item afrom start shifts the other items forward
+            item = self.form._2.itemAt(r)
+            item.widget().setParent(None)
         self.form.fieldRename.setParent(None)
         self.form.fieldPosition.setParent(None)
         self.form.label_5.setParent(None)
-        self.form.sortField.setParent(None)
+
+        self.setupOptions()
+        self.getTagsText()
+
+
         self.resize(500, 300)
 
         self.exec_()
