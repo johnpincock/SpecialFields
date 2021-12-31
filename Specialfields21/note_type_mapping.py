@@ -1,9 +1,7 @@
-from typing import Optional, Dict
 from abc import ABC
+from typing import Dict, Optional
 
 from anki.models import NoteType
-from aqt.utils import showText
-from aqt import mw
 
 
 class NoteTypeMapping(ABC):
