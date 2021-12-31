@@ -1,3 +1,5 @@
+import time
+
 from anki.hooks import schema_will_change
 from anki.importing import Anki2Importer
 from anki.lang import _
@@ -381,6 +383,12 @@ def _did(self, did: int):
     # add to deck map and return
     self._decks[did] = newid
     return newid
+
+
+def intTime(scale: int = 1) -> int:
+    # copied from aqt.utils of Anki versions < 2.1.50
+    "The time in integer seconds. Pass scale=1000 to get milliseconds."
+    return int(time.time() * scale)
 
 
 Anki2Importer._did = _did
