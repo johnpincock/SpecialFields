@@ -1,13 +1,12 @@
+import time
+
+from anki.hooks import schema_will_change
 from anki.importing import Anki2Importer
 from anki.lang import _
-from anki.utils import json
-from anki.hooks import schema_will_change
 from aqt import mw
-from aqt.utils import showWarning
 
-from . import dialog
-from .dialog import returnTagsText
 from .config import getUserOption
+from .dialog import returnTagsText
 from .note_type_mapping import create_mapping_on_field_name_equality
 
 # #########################################################
@@ -173,7 +172,7 @@ def newImportNotes(self) -> None:
             for item in returnTagsText():
                 if item in tag:
                     keepTags.append(tag)
-                    
+
             if "marked" in tag or "leech" in tag:
                 keepTags.append(tag)
 
@@ -384,6 +383,12 @@ def _did(self, did: int):
     # add to deck map and return
     self._decks[did] = newid
     return newid
+
+
+def intTime(scale: int = 1) -> int:
+    # copied from aqt.utils of Anki versions < 2.1.50
+    "The time in integer seconds. Pass scale=1000 to get milliseconds."
+    return int(time.time() * scale)
 
 
 Anki2Importer._did = _did
