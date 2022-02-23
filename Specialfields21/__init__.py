@@ -2,6 +2,7 @@ import time
 
 from anki.hooks import schema_will_change
 from anki.importing import Anki2Importer
+from anki.importing.anki2 import Anki2Importer
 from anki.lang import _
 from aqt import mw
 
@@ -33,7 +34,7 @@ def getUserOptionSpecial(key=None, default=None):
         return default
 
 
-def newImportNotes(self) -> None:
+def newImportNotes(self: Anki2Importer) -> None:
     # build guid -> (id,mod,mid) hash & map of existing note ids
     self._notes = {}
     existing = {}
@@ -112,7 +113,7 @@ def newImportNotes(self) -> None:
                         if updateNoteType and mapping:
                             self.dst.models.change(
                                 old_model,
-                                [note[NID]],
+                                [oldNid],
                                 target_model,
                                 mapping.get_field_map(),
                                 mapping.get_card_type_map(),
