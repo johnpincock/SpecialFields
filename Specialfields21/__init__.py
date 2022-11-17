@@ -5,6 +5,7 @@ from anki.importing import Anki2Importer
 from anki.importing.anki2 import Anki2Importer
 from anki.lang import _
 from aqt import mw
+from aqt import appVersion
 
 from .config import getUserOption
 from .dialog import returnTagsText
@@ -393,3 +394,9 @@ def intTime(scale: int = 1) -> int:
 
 
 Anki2Importer._did = _did
+
+anki_version = tuple(int(p) for p in appVersion.split("."))
+if anki_version >= (2, 1, 54):
+    from .new_importer import patch_new_importer
+
+    patch_new_importer()
