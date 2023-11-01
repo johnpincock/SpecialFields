@@ -42,11 +42,11 @@ class FieldDialog(QDialog):
         self.form = aqt.forms.fields.Ui_Dialog()
         self.form.setupUi(self)
         self.setWindowTitle(_("Special Fields"))
-        self.form.buttonBox.button(QDialogButtonBox.Help).setAutoDefault(False)
-        if self.form.buttonBox.button(QDialogButtonBox.Close):
-            self.form.buttonBox.button(QDialogButtonBox.Close).setAutoDefault(False)
+        self.form.buttonBox.button(QDialogButtonBox.StandardButton.Help).setAutoDefault(False)
+        if self.form.buttonBox.button(QDialogButtonBox.StandardButton.Close):
+            self.form.buttonBox.button(QDialogButtonBox.StandardButton.Close).setAutoDefault(False)
         else:
-            self.form.buttonBox.button(QDialogButtonBox.Close)
+            self.form.buttonBox.button(QDialogButtonBox.StandardButton.Close)
         self.currentIdx = None
         self.fillFields()
         self.setupSignals()
@@ -116,7 +116,7 @@ class FieldDialog(QDialog):
         self.form._2.addWidget(self.b9, 2, 2)
 
         self.l1 = QLabel("<div style='font-weight: bold'>Protected Tags: </div>", self)
-        self.l1.setAlignment(Qt.AlignRight)
+        self.l1.setAlignment(Qt.AlignmentFlag.AlignRight)
         self.form._2.addWidget(self.l1, 3, 0)
         self.l1.setToolTip(
             f'<div style="background:red;">When updating, all tags except those containing these phrases will be updated (separate multiple terms by a space - case sensitive!)</div>'
