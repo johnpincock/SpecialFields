@@ -5,7 +5,8 @@ import aqt
 from anki.consts import *
 from aqt import mw
 from aqt.qt import *
-from aqt.utils import getOnlyText, showInfo, showWarning
+from aqt.utils import getOnlyText, showInfo, showWarning, askUser
+from anki.utils import pointVersion
 
 from .config import getUserOption
 
@@ -349,6 +350,12 @@ def returnTagsText():
 
 
 def onFields(self):
+    if pointVersion() >= 55 and not mw.pm.legacy_import_export():
+        yes = askUser(
+            'Special Fields doesn\'t work without enabling the "Legacy import/export handling" preference. Do you want to enable it? This may make it so you cannot import newer files. If you experience errors, turn this setting off temporarily'
+        )
+        if yes:
+            mw.pm.set_legacy_import_export(True)
     # Use existing FieldDialog as template for UI.
     fields = configs["current config"]["Special field"]
     FieldDialog(mw, fields, parent=self)
