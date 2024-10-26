@@ -2,11 +2,13 @@ import copy
 import webbrowser
 
 import aqt
+import aqt.importing
 from anki.consts import *
+from anki.hooks import wrap
+from anki.utils import pointVersion
 from aqt import mw
 from aqt.qt import *
-from aqt.utils import getOnlyText, showInfo, showWarning, askUser
-from anki.utils import pointVersion
+from aqt.utils import askUser, getOnlyText, showInfo, showWarning
 
 from .config import getUserOption
 
@@ -350,12 +352,6 @@ def returnTagsText():
 
 
 def onFields(self):
-    if pointVersion() >= 55 and not mw.pm.legacy_import_export():
-        yes = askUser(
-            'Special Fields doesn\'t work without enabling the "Legacy import/export handling" preference. Do you want to enable it? This may make it so you cannot import newer files. If you experience errors, turn this setting off temporarily'
-        )
-        if yes:
-            mw.pm.set_legacy_import_export(True)
     # Use existing FieldDialog as template for UI.
     fields = configs["current config"]["Special field"]
     FieldDialog(mw, fields, parent=self)
@@ -364,9 +360,27 @@ def onFields(self):
 def onFieldsExecute():
     onFields(mw)
 
+def wants_legacy_import():
+    return askUser('Import using the Special Fields add-on?')
+
+def prompt_for_file_then_import_override(mw, _old):
+    if wants_legacy_import():
+        aqt.importing.onImport(mw)
+    else:
+        _old(mw)
+
+def import_file_override(mw, path, _old):
+    if wants_legacy_import():
+        aqt.importing.importFile(mw, path)
+    else:
+        _old(mw, path)
 
 mw.addonManager.setConfigAction(__name__, onFieldsExecute)
 action = QAction("Special Fields", mw)
 action.setShortcut(QKeySequence("Ctrl+shift+s"))
 action.triggered.connect(onFields)
 mw.form.menuTools.addAction(action)
+if pointVersion() >= 55:
+    aqt.main.prompt_for_file_then_import = wrap(aqt.main.prompt_for_file_then_import, prompt_for_file_then_import_override, "around")
+    # for drag & drop
+    aqt.main.import_file = wrap(aqt.main.import_file, import_file_override, "around")
