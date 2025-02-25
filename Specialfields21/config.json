@@ -4,7 +4,7 @@
     "Combine tagging": true,
     "Protected tags": ["%%keep%%"],
     "Special field":
-    ["Lecture Notes", "Missed Questions", "Pathoma", "Boards and Beyond"],
+    ["Lecture Notes", "Personal Notes", "Missed Questions", "Pathoma", "Boards and Beyond"],
     "update deck description": false,
     "update note styling": false,
     "update only if newer": false
@@ -14,7 +14,7 @@
     "Combine tagging": true,
     "Protected tags": ["%%keep%%"],
     "Special field":
-    ["Lecture Notes", "Missed Questions", "Pathoma", "Boards and Beyond"],
+    ["Lecture Notes", "Personal Notes", "Missed Questions", "Pathoma", "Boards and Beyond"],
     "update deck description": false,
     "update note styling": false,
     "update only if newer": false
