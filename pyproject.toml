@@ -1,0 +1,12 @@
+[project]
+name = "special-fields-anki-addon"
+version = "6.0"
+description = "Anki add-on that keeps your own field edits and tags when re-importing a deck"
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+test = ["pytest>=7", "anki>=23.10", "aqt[qt6]>=23.10"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--confcutdir=tests"]
