@@ -3,6 +3,7 @@
     "package": "1102281552",
     "ankiweb_id": "1102281552",
     "author": "John Pincock",
-    "version": "5.4",
+    "version": "6.0",
+    "min_point_version": 231000,
     "conflicts": []
 }
