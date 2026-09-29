@@ -1,16 +1,23 @@
 import copy
+import os
 import webbrowser
 
 import aqt
-import aqt.importing
+import aqt.import_export.importing as importing_ui
+import aqt.main
 from anki.consts import *
 from anki.hooks import wrap
-from anki.utils import pointVersion
 from aqt import mw
+from aqt.import_export.importing import ApkgImporter, ColpkgImporter
 from aqt.qt import *
 from aqt.utils import askUser, getOnlyText, showInfo, showWarning
 
 from .config import getUserOption
+
+try:
+    import aqt.importing as legacy_importing
+except ImportError:  # Anki 26.09 removed the legacy importer
+    legacy_importing = None
 
 # #########################################################
 #
@@ -148,10 +155,6 @@ class FieldDialog(QDialog):
         configs["current config"]["Protected tags"] = KEEPTAGTEXT
         mw.addonManager.writeConfig(__name__, fullconfig)
         # showInfo("done")
-
-    def returnTagsText(self):
-        self.getTagsText()
-        return KEEPTAGTEXT
 
     def fillFields(self):
         self.currentIdx = None
@@ -346,11 +349,6 @@ class FieldDialog(QDialog):
         webbrowser.open("https://youtu.be/TTHpODHBk3U")
 
 
-def returnTagsText():
-    global KEEPTAGTEXT
-    return KEEPTAGTEXT
-
-
 def onFields(self):
     # Use existing FieldDialog as template for UI.
     fields = configs["current config"]["Special field"]
@@ -360,27 +358,69 @@ def onFields(self):
 def onFieldsExecute():
     onFields(mw)
 
-def wants_legacy_import():
-    return askUser('Import using the Special Fields add-on?')
 
-def prompt_for_file_then_import_override(mw, _old):
-    if wants_legacy_import():
-        aqt.importing.onImport(mw)
-    else:
-        _old(mw)
+_armed_package = None
+
+
+def _normalize(path):
+    return os.path.normcase(os.path.abspath(path))
+
+
+def is_deck_package(path):
+    name = os.path.basename(path).lower()
+    return ApkgImporter.can_import(name) and not ColpkgImporter.can_import(name)
+
+
+def arm_package(path):
+    global _armed_package
+    _armed_package = _normalize(path)
+
+
+def consume_armed_package(path):
+    global _armed_package
+    if _armed_package is None or _armed_package != _normalize(path):
+        return False
+    _armed_package = None
+    return True
+
+
+def ask_to_arm(path):
+    """Prompt for a deck package and arm its path on yes. Any other import disarms."""
+    global _armed_package
+    _armed_package = None
+    if is_deck_package(path) and askUser("Import using the Special Fields add-on?"):
+        arm_package(path)
+        return True
+    return False
+
 
 def import_file_override(mw, path, _old):
-    if wants_legacy_import():
-        aqt.importing.importFile(mw, path)
+    ask_to_arm(path)
+    _old(mw, path)
+
+
+def legacy_import_file_override(mw, path, _old):
+    """The legacy import/export toggle on 23.10 skips import_file, so prompt here too.
+
+    Accepted packages go to the unwrapped new import_file, which ignores the toggle, so there is no second prompt.
+    """
+    if ask_to_arm(path):
+        new_import_file(mw, path)
     else:
         _old(mw, path)
+
 
 mw.addonManager.setConfigAction(__name__, onFieldsExecute)
 action = QAction("Special Fields", mw)
 action.setShortcut(QKeySequence("Ctrl+shift+s"))
 action.triggered.connect(onFields)
 mw.form.menuTools.addAction(action)
-if pointVersion() >= 55:
-    aqt.main.prompt_for_file_then_import = wrap(aqt.main.prompt_for_file_then_import, prompt_for_file_then_import_override, "around")
-    # for drag & drop
-    aqt.main.import_file = wrap(aqt.main.import_file, import_file_override, "around")
+new_import_file = importing_ui.import_file
+importing_ui.import_file = wrap(new_import_file, import_file_override, "around")
+if hasattr(aqt.main, "import_file"):
+    aqt.main.import_file = importing_ui.import_file
+if legacy_importing is not None:
+    # legacy File > Import, drag-and-drop and file-open all end up here
+    legacy_importing.importFile = wrap(
+        legacy_importing.importFile, legacy_import_file_override, "around"
+    )
